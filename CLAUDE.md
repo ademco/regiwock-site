@@ -56,6 +56,10 @@ Flags for `new`: `--featured`, `--tags "a,b"`, `--date 2024-05-01`, `--thumbnail
 - Thumbnails: YouTube → `i.ytimg.com` (maxres if it exists, else hq). Spotify/SoundCloud → oEmbed `thumbnail_url` (fetched by the CLI; if missing, `src/lib/work.ts` retries at build time on Cloudflare, which has internet). TikTok thumbnail URLs expire, so the CLI downloads them to `public/thumbs/`. Instagram/Twitch/Kick/Apple Music → typographic title tile. Any thumbnail that fails to load falls back to the tile.
 - **Cloud sandbox note:** Claude Code on the web can't reach YouTube/Spotify/etc., so `npm run new` there can't verify titles or fetch oEmbed art — always pass a title. YouTube thumbnails still work (derived from the ID).
 
+## Direction change (roadmap 2.1, in progress)
+
+Regi picked **Broadcast → "Viewfinder"**: the whole site framed like a camera's preview screen (dark, REC light, focus-lock corners, tally red + preview green, Doto / Geist Sans / Geist Mono). **Every number on screen must be real** (timecode = visitor's time of day, date, screen size); no fake counters. The **drawing motif is dropped**. The notebook pages below are what's live until 2.2 (tokens) and Phase 4 rebuild them. Sample: `/styleguide`.
+
 ## Pages (v2 — "sketchbook", Regi asked for much less going on)
 
 - **`/` (`src/pages/index.astro`)** — one screen, no scrolling: wordmark + Book me (top), the `Scene` in the middle, pitch + roles + a few links (bottom). That's it.
@@ -83,7 +87,7 @@ Flags for `new`: `--featured`, `--tags "a,b"`, `--date 2024-05-01`, `--thumbnail
 
 ## Open items
 
-- Figure art: waiting on hand-drawn / generated frames from Regi (see Scene notes).
+- Figure art: dropped (drawing motif is out, see Direction change). The hero becomes the camera preview in 4.1.
 - Background music: waiting on Regi — an MP3 he owns (e.g. his own track) for `public/audio/ambient.mp3`.
 - No posts or drops yet (those filters show a "Cooking." empty state). Top track "Feelings Gone" is featured; other music cards are profile links.
 - Social URLs assume handle `regiwock` everywhere except TikTok (`regiwock_`).
