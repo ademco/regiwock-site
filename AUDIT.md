@@ -3,6 +3,7 @@
 Audited `main` @ `666173b` (the notebook-sketch version, PR #2) on 2026-09-24.
 Method: local production build, Playwright screenshots at 360×640, 390×844 and 844×390 (landscape), 1440×900, and Lighthouse 12 mobile runs.
 Lighthouse ran on a local server, so its numbers are only a guide. Re-measure on the live URL in Phase 6.
+Approved by Regi on 2026-09-24 (roadmap item 1.1 locked).
 
 ## Top issues (fix first)
 

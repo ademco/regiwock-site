@@ -10,7 +10,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 ### 1.1 Site audit
 - **Goal:** know exactly what the site has today, what works, what's weak and what's broken (especially on mobile) before building anything new.
 - **Done when:** `AUDIT.md` lists every section with working / weak / broken notes, plus Lighthouse mobile numbers and the top issues, and Regi approves it.
-- **Status:** in progress
+- **Status:** locked
 
 ---
 
