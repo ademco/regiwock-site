@@ -1,27 +1,80 @@
 ---
+import fs from 'node:fs';
+import path from 'node:path';
 import Base from '../layouts/Base.astro';
-import Nav from '../components/Nav.astro';
-import Hero from '../components/Hero.astro';
-import ProofBar from '../components/ProofBar.astro';
-import Work from '../components/Work.astro';
-import Collabs from '../components/Collabs.astro';
-import Services from '../components/Services.astro';
-import About from '../components/About.astro';
-import BookForm from '../components/BookForm.astro';
-import Footer from '../components/Footer.astro';
+import Scene from '../components/Scene.astro';
+import { PROFILE, SOCIALS, EMAIL, AUDIO } from '../config';
+
+// The sound toggle only appears once public/audio/ambient.mp3 exists
+const hasAudio = fs.existsSync(path.join(process.cwd(), 'public', ...AUDIO.file.split('/')));
+const links = SOCIALS.filter((s) => ['Spotify', 'YouTube', 'Instagram', 'TikTok'].includes(s.name));
+const words = PROFILE.pitch.split(' ');
 ---
 
 <Base>
-  <a href="#book" class="btn btn-accent fixed top-2 left-2 z-[70] -translate-y-24 focus:translate-y-0">Skip to booking</a>
-  <Nav />
-  <main class="overflow-x-clip">
-    <Hero />
-    <ProofBar />
-    <Work />
-    <Collabs />
-    <Services />
-    <About />
-    <BookForm />
+  <main class="relative h-svh min-h-[560px] overflow-hidden">
+    <Scene />
+
+    <header class="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4 sm:p-6">
+      <h1 class="display text-xl sm:text-2xl">{PROFILE.wordmark}<span class="accent-text">.</span></h1>
+      <a href="#book" class="btn btn-accent">Book me <span class="arrow">→</span></a>
+    </header>
+
+    <footer class="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+      <div>
+        <p class="label mb-2 text-muted">{PROFILE.roles.join(' / ')}</p>
+        <p class="display text-2xl sm:text-4xl">
+          {words.slice(0, -2).join(' ')} <span class="accent-text">{words.slice(-2).join(' ')}</span>
+        </p>
+      </div>
+      <nav class="label flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Links">
+        <a href="/work" class="text-ink underline decoration-1 underline-offset-4">Work ↗</a>
+        {links.map((s) => <a href={s.url} target="_blank" rel="me noopener" class="text-muted hover:text-ink">{s.name}</a>)}
+        <a href={`mailto:${EMAIL}`} class="text-muted hover:text-ink">Email</a>
+        {
+          hasAudio && (
+            <button id="sound" type="button" class="flex items-center gap-1.5 text-muted hover:text-ink" aria-pressed="false">
+              <span aria-hidden="true">♪</span> <span data-state>Sound off</span>
+            </button>
+          )
+        }
+      </nav>
+    </footer>
+
+    {hasAudio && <audio id="bg-audio" src={`/${AUDIO.file}`} loop preload="none" />}
   </main>
-  <div class="overflow-x-clip"><Footer /></div>
 </Base>
+
+<script>
+  // Background sound: browsers only allow it after a tap, so it's opt-in with a gentle fade
+  const btn = document.getElementById('sound');
+  const audio = document.getElementById('bg-audio') as HTMLAudioElement | null;
+  if (btn && audio) {
+    const state = btn.querySelector('[data-state]')!;
+    let fade: number | undefined;
+    const ramp = (to: number, done?: () => void) => {
+      clearInterval(fade);
+      fade = window.setInterval(() => {
+        const next = audio.volume + (to > audio.volume ? 0.05 : -0.05);
+        audio.volume = Math.min(1, Math.max(0, next));
+        if (Math.abs(audio.volume - to) < 0.06) {
+          audio.volume = to;
+          clearInterval(fade);
+          done?.();
+        }
+      }, 60);
+    };
+    btn.addEventListener('click', async () => {
+      const on = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(on));
+      state.textContent = on ? 'Sound on' : 'Sound off';
+      if (on) {
+        audio.volume = 0;
+        await audio.play().catch(() => {});
+        ramp(0.6);
+      } else {
+        ramp(0, () => audio.pause());
+      }
+    });
+  }
+</script>

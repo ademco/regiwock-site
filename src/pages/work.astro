@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import Work from '../components/Work.astro';
+import Collabs from '../components/Collabs.astro';
+import About from '../components/About.astro';
+import { PROFILE, SOCIALS, EMAIL } from '../config';
+---
+
+<Base title={`Work — ${PROFILE.wordmark}`}>
+  <header class="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-bg/85 px-4 py-3 backdrop-blur-md sm:px-6">
+    <a href="/" class="display text-xl sm:text-2xl" aria-label="Back to the main page">{PROFILE.wordmark}<span class="accent-text">.</span></a>
+    <a href="#book" class="btn btn-accent">Book me <span class="arrow">→</span></a>
+  </header>
+
+  <main class="overflow-x-clip">
+    <Work />
+    <Collabs />
+    <About />
+  </main>
+
+  <footer class="flex flex-col gap-6 border-t border-line px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+    <nav class="label flex flex-wrap gap-x-4 gap-y-2" aria-label="Socials">
+      {SOCIALS.map((s) => <a href={s.url} target="_blank" rel="me noopener" class="text-muted hover:text-ink">{s.name}</a>)}
+      <a href={`mailto:${EMAIL}`} class="text-muted hover:text-ink">{EMAIL}</a>
+    </nav>
+    <a href="#book" class="btn btn-accent btn-lg self-start">Book me <span class="arrow">→</span></a>
+  </footer>
+</Base>

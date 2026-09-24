@@ -19,8 +19,8 @@ const font = (pkg: string, file: string) =>
   fs.readFileSync(path.join(process.cwd(), 'node_modules', '@fontsource', pkg, 'files', file));
 
 const fonts = [
-  { name: 'Anton', data: font('anton', 'anton-latin-400-normal.woff'), weight: 400 as const, style: 'normal' as const },
-  { name: 'Instrument Serif', data: font('instrument-serif', 'instrument-serif-latin-400-italic.woff'), weight: 400 as const, style: 'italic' as const },
+  { name: 'Unbounded', data: font('unbounded', 'unbounded-latin-800-normal.woff'), weight: 800 as const, style: 'normal' as const },
+  { name: 'Caveat', data: font('caveat', 'caveat-latin-500-normal.woff'), weight: 500 as const, style: 'normal' as const },
   { name: 'Mono', data: font('jetbrains-mono', 'jetbrains-mono-latin-500-normal.woff'), weight: 500 as const, style: 'normal' as const },
 ];
 
@@ -31,8 +31,8 @@ export async function renderPng(node: Node, width: number, height: number) {
 }
 
 export const OG = {
-  bg: '#ece7dd',
-  ink: '#151412',
-  muted: '#6c665c',
-  accent: '#ff4f00',
+  bg: '#f6f5f0',
+  ink: '#1d1d1b',
+  muted: '#6d6b66',
+  accent: 'linear-gradient(90deg, #ff2e63, #ff9f1c, #ffe600, #25e07a, #2ea8ff, #8a2eff)',
 };

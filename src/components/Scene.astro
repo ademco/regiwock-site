@@ -1,0 +1,37 @@
+---
+// The main-page sketch: Regi fixed in the middle, "falling upward" while
+// pencil clouds drift down past him. All drawings are generated at build time.
+import { figureSVG, cloudTileSVG, streaksSVG, arrowSVG } from '../lib/sketch';
+
+const far = cloudTileSVG(11, 9, 0.7);
+const near = cloudTileSVG(29, 6, 1.15, true);
+const figure = figureSVG();
+const streaks = streaksSVG();
+const arrow = arrowSVG();
+
+// One tile per screen height; two stacked copies scroll down and loop seamlessly
+const tile = (body: string) =>
+  `<svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" class="frames frames-2">${body}</svg>`;
+---
+
+<div class="sky" aria-hidden="true">
+  <div class="sky-layer sky-far opacity-45" set:html={tile(far) + tile(far)} />
+
+  <!-- Regi -->
+  <div class="absolute inset-x-0 top-[12%] bottom-[10%] flex items-center justify-center">
+    <div class="floaty relative h-full max-h-[760px] w-auto max-w-[86vw] aspect-[500/640]">
+      <svg class="frames frames-3 streaks absolute top-[70%] left-[20%] h-[34%] w-[60%]" viewBox="100 0 200 200" set:html={streaks} />
+      <svg class="frames frames-3 absolute inset-0 h-full w-full" viewBox="-40 -30 500 640">
+        <g transform="rotate(-14 210 290)" set:html={figure} />
+      </svg>
+    </div>
+  </div>
+
+  <div class="sky-layer sky-near" set:html={tile(near) + tile(near)} />
+</div>
+
+<!-- Sketchbook caption -->
+<div class="pointer-events-none absolute top-[16%] right-[6%] hidden items-end gap-1 sm:flex" aria-hidden="true">
+  <svg class="frames frames-3 mb-6 h-10 w-24 -scale-x-100 rotate-[160deg]" viewBox="0 0 120 60" set:html={arrow} />
+  <p class="hand text-3xl leading-none text-ink/80">fig. 1 — regi,<br />falling up</p>
+</div>

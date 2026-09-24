@@ -28,12 +28,6 @@ export const PROFILE = {
     'Regi (@regiwock): independent artist, creator since 2009, and the camera + stream tech behind live sessions with Ye, Digital Nas, AssPizza and more. Book brand deals, stream production and collabs.',
 };
 
-export const STATS = [
-  { value: '20K', label: 'Monthly listeners on Spotify' },
-  { value: '2009', label: 'Creating since — started on YouTube at 9' },
-  { value: 'ENG', label: 'Platform engineer — stream tech that holds up' },
-];
-
 /** Shown in the proof bar marquee. */
 export const COLLAB_NAMES = ['Ye', 'Digital Nas', 'AssPizza', 'Ac7ionMan', 'Blame'];
 
@@ -59,38 +53,12 @@ export const COLLABS = [
   },
 ];
 
-export const SERVICES = [
-  {
-    inquiry: 'Brand deal',
-    title: 'Brand deals',
-    points: [
-      'Integrations across YouTube, Twitch, Kick, TikTok and Instagram',
-      'Music placements and sponsored sounds',
-      'Short-form content built for the feed',
-      'An audience that’s been growing since 2009',
-    ],
-  },
-  {
-    inquiry: 'Stream production',
-    title: 'Stream production',
-    points: [
-      'Camera operation and multi-cam setups',
-      'OBS scenes, overlays and audio routing',
-      'Encoding, bandwidth and backup planning',
-      'Pre-show consulting: format, flow, what you need',
-      'On-site and live tech support',
-    ],
-  },
-  {
-    inquiry: 'Collab',
-    title: 'Collabs',
-    points: [
-      'Co-streams and IRL content',
-      'Music features and collabs',
-      'Creative direction for content drops',
-    ],
-  },
-];
+/**
+ * Background sound for the main page. Drop an MP3 at public/audio/ambient.mp3 and a
+ * "sound" toggle appears (browsers only allow audio after a tap). Must be a track Regi
+ * has the rights to — his own music is ideal.
+ */
+export const AUDIO = { file: 'audio/ambient.mp3', title: '' };
 
 export const INQUIRY_TYPES = ['Brand deal', 'Stream production', 'Collab', 'Other'];
 
@@ -115,7 +83,3 @@ export const SOCIALS = [
   { name: 'Apple Music', url: 'https://music.apple.com/us/artist/regiwock/1673912296' },
 ];
 
-/** Visual "vibes" the visitor can flip between. Tokens live in src/styles/global.css. */
-export const VIBES = ['cream', 'concrete', 'night', 'prism'] as const;
-export type Vibe = (typeof VIBES)[number];
-export const DEFAULT_VIBE: Vibe = 'cream';

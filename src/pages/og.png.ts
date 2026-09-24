@@ -1,18 +1,20 @@
 import type { APIRoute } from 'astro';
 import { h, renderPng, OG } from '../lib/og';
-import { PROFILE, COLLAB_NAMES } from '../config';
+import { figureSVG, cloudTileSVG } from '../lib/sketch';
+import { PROFILE } from '../config';
 
-const corner = (pos: Record<string, number>, sides: string[]) =>
-  h('div', {
-    position: 'absolute',
-    width: 44,
-    height: 44,
-    ...pos,
-    ...Object.fromEntries(sides.map((s) => [`border${s}`, `4px solid ${OG.ink}`])),
-  });
+// Only the first frame of each drawing (static image)
+const firstFrame = (svg: string) => svg.replace(/<g class="f f[23]">.*?<\/g>(?=<g class="f|$)/gs, '');
+const svgImg = (viewBox: string, body: string, w: number, hgt: number) => ({
+  type: 'img',
+  props: {
+    src: `data:image/svg+xml;base64,${Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${w}" height="${hgt}">${body}</svg>`).toString('base64')}`,
+    width: w,
+    height: hgt,
+  },
+});
 
-// The mono font subset has no → glyph, so draw it
-const arrow: Parameters<typeof h>[2] = {
+const arrow = {
   type: 'svg',
   props: {
     width: 30,
@@ -22,43 +24,27 @@ const arrow: Parameters<typeof h>[2] = {
   },
 };
 
-const label = (text: string, extra: Record<string, unknown> = {}) =>
-  h('div', { fontFamily: 'Mono', fontSize: 22, letterSpacing: 2, textTransform: 'uppercase', color: OG.muted, ...extra }, text);
-
 export const GET: APIRoute = () =>
   renderPng(
     h(
       'div',
-      { width: '100%', height: '100%', background: OG.bg, color: OG.ink, position: 'relative', flexDirection: 'column', padding: '64px 72px' },
-      corner({ top: 28, left: 28 }, ['Top', 'Left']),
-      corner({ top: 28, right: 28 }, ['Top', 'Right']),
-      corner({ bottom: 28, left: 28 }, ['Bottom', 'Left']),
-      corner({ bottom: 28, right: 28 }, ['Bottom', 'Right']),
+      { width: '100%', height: '100%', background: OG.bg, color: OG.ink, position: 'relative' },
+      h('div', { position: 'absolute', left: 0, top: 0 }, svgImg('0 0 1000 525', firstFrame(cloudTileSVG(11, 9, 0.7)), 1200, 630) as never),
       h(
         'div',
-        { justifyContent: 'space-between', width: '100%' },
-        h('div', { alignItems: 'center', gap: 12 }, h('div', { width: 16, height: 16, borderRadius: 16, background: '#ff2a2a' }), label('Rec', { color: OG.ink })),
-        label(PROFILE.roles.join('  /  ')),
+        { position: 'absolute', right: 150, top: 10 },
+        svgImg('-40 -30 500 640', `<g transform="rotate(-14 210 290)">${firstFrame(figureSVG(1))}</g>`, 480, 614) as never,
       ),
       h(
         'div',
-        { flexDirection: 'column', flexGrow: 1, justifyContent: 'center' },
-        h('div', { fontFamily: 'Anton', fontSize: 250, lineHeight: 0.9, letterSpacing: -2, textTransform: 'uppercase' }, PROFILE.wordmark),
+        { position: 'absolute', left: 64, bottom: 64, flexDirection: 'column', gap: 18 },
+        h('div', { fontFamily: 'Unbounded', fontSize: 92, letterSpacing: -5, lineHeight: 1 }, PROFILE.wordmark.toUpperCase()),
+        h('div', { fontFamily: 'Caveat', fontSize: 50, color: OG.muted }, `${PROFILE.pitch.toLowerCase()}`),
         h(
           'div',
-          { fontFamily: 'Instrument Serif', fontStyle: 'italic', fontSize: 76, marginTop: 8, color: OG.ink },
-          PROFILE.pitch,
-        ),
-      ),
-      h(
-        'div',
-        { justifyContent: 'space-between', alignItems: 'flex-end', width: '100%' },
-        label(`w/ ${COLLAB_NAMES.slice(0, 4).join(' · ')}`),
-        h(
-          'div',
-          { background: OG.accent, color: OG.ink, fontFamily: 'Mono', fontSize: 28, letterSpacing: 2, padding: '18px 28px', textTransform: 'uppercase', alignItems: 'center', gap: 16 },
+          { alignItems: 'center', gap: 14, alignSelf: 'flex-start', marginTop: 6, backgroundImage: OG.accent, padding: '16px 26px', fontFamily: 'Mono', fontSize: 26, letterSpacing: 2, textTransform: 'uppercase' },
           'Book me',
-          arrow,
+          arrow as never,
         ),
       ),
     ),
