@@ -19,7 +19,9 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 ### 2.1 Style guide: 3 directions
 - **Goal:** Regi picks the look by comparing options side by side instead of reacting to finished pages.
 - **Done when:** a `/styleguide` page shows 3 distinct directions side by side, each with color palette, type scale (display + body + label), buttons (primary/secondary, hover), and a sample card. It must work on a phone. Regi picks one (or a mix).
-- **Status:** in progress (round 1 of 3: Notebook / Stark / Broadcast on `/styleguide`)
+- **Status:** in progress (round 2 of 3: Regi picked **3 · Broadcast**, now reworked as **Viewfinder** on `/styleguide`)
+- **Round 1 → Regi:** picked Broadcast, but no meaningless spinning timers: every number must be real. The whole site should feel like a camera's preview screen ("camera man" theme), with a highlight reel playing as the footage, muted with tap for sound. Drop the drawing motif ("overplayed and too hard").
+- **Round 2:** whole-site viewfinder frame (REC, time-of-day timecode from the visitor's clock, 30P, page name, date, live screen size, framing corners, center mark). Home sample shows a stream still as footage (reel comes in 5.3). Fake timecodes removed from the card.
 
 ### 2.2 Design tokens
 - **Goal:** the chosen direction becomes the single source of truth for color, type, spacing, radius and motion.
@@ -46,7 +48,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 
 ### 4.1 Hero
 - **Goal:** in 3 seconds a visitor knows who Regi is and how to book him.
-- **Done when:** name, pitch, primary "Book me" and the chosen visual (e.g. the falling-up drawing with real drawn frames) look right at 360px, 390px, landscape and desktop; nothing overlaps; reduced motion is handled.
+- **Done when:** name, pitch, primary "Book me" and the chosen visual (the camera preview with footage in it, see 2.1) look right at 360px, 390px, landscape and desktop; nothing overlaps; reduced motion is handled.
 - **Status:** todo
 
 ### 4.2 Book me form
@@ -95,7 +97,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 
 ### 5.3 Reel
 - **Goal:** a short, silent-friendly highlight loop that sells the energy.
-- **Done when:** a 10–20s reel (≤ 8 MB, H.264) and its poster are in the hero (or wherever Phase 4 decides) and it loads fast on mobile.
+- **Done when:** a 10–20s reel (≤ 8 MB, H.264) and its poster play as the footage inside the hero's camera preview (muted, tap for sound) and it loads fast on mobile.
 - **Status:** todo
 
 ---
@@ -156,7 +158,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 ## IDEAS (parked, not in scope until promoted to a roadmap item)
 
 - Background sound on the home page with one of Regi's own tracks (Feelings Gone), toggle already built.
-- Hand-drawn / generated anime-style frames of Regi "falling upward" (`npm run frames` pipeline exists).
+- ~~Hand-drawn frames of Regi "falling upward"~~: dropped 2026-09-24 (Regi: "overplayed and too hard"). The drawing code (`Scene.astro`, `sketch.ts`, `npm run frames`) stays until 4.1 replaces the hero.
 - Move regiwock.com from Beacons to Cloudflare (before Feb 2027), then set `DOMAIN_CONNECTED = true`.
 - Look switcher ("vibes"), removed in v2; could return as a hidden easter egg.
 - Live indicator ("Regi is live now") when streaming on Twitch/Kick/YouTube.

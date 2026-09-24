@@ -1,8 +1,8 @@
 ---
-// Roadmap 2.1 — three look directions side by side so Regi can pick one (or a mix).
-// Hidden page: not linked anywhere, noindex. Each direction is scoped by its own
-// CSS variables on `.dir-*`, so the markup is identical and only the skin changes.
-import '@fontsource/inter-tight/latin-600.css';
+// Roadmap 2.1, round 2. Regi picked direction 3 (Broadcast) and asked for:
+// no fake timers (every number must be real), the whole site framed like a camera's
+// preview screen, and footage (a reel later, a stream still for now) inside it.
+// Hidden page: not linked anywhere, noindex.
 import '@fontsource/doto/latin-900.css';
 import '@fontsource/geist-sans/latin-400.css';
 import '@fontsource/geist-sans/latin-600.css';
@@ -14,532 +14,430 @@ import { detect } from '../lib/platforms.mjs';
 
 const sample = COLLABS[0];
 const thumb = detect(sample.url).thumbnail;
-
-const directions = [
-  {
-    key: 'notebook',
-    name: 'Notebook',
-    vibe: 'Pencil on ruled paper. Handmade, a little rough, rainbow only where you should tap.',
-    swatches: [
-      { name: 'Paper', hex: '#FBFAF6' },
-      { name: 'Graphite', hex: '#1D1D1B' },
-      { name: 'Pencil', hex: '#6D6B66' },
-      { name: 'Rule blue', hex: '#CDDCF0' },
-      { name: 'Margin red', hex: '#F0A7A7' },
-      { name: 'Rainbow', hex: 'Book me only', fill: 'linear-gradient(90deg,#ff2e63,#ff9f1c,#ffe600,#25e07a,#2ea8ff,#8a2eff)' },
-    ],
-    type: ['Unbounded 800 · caps', 'Unbounded 800 · caps', 'Inter Tight 400', 'JetBrains Mono · caps', 'Caveat · notes'],
-    motion: 'Stop-motion at 12fps: things boil, pop and wobble in steps instead of gliding. Charming, but busy if overused.',
-  },
-  {
-    key: 'stark',
-    name: 'Stark',
-    vibe: 'White space, black type, one blue. Nothing extra, so every animation feels deliberate.',
-    swatches: [
-      { name: 'White', hex: '#FFFFFF' },
-      { name: 'Mist', hex: '#F5F5F7' },
-      { name: 'Black', hex: '#0A0A0A' },
-      { name: 'Gray', hex: '#6E6E73' },
-      { name: 'Cobalt', hex: '#2340FF' },
-    ],
-    type: ['Inter Tight 600', 'Inter Tight 600', 'Inter Tight 400', 'Inter Tight 500 · caps'],
-    motion: 'Smooth and quick: text slides up out of a mask, fills sweep, images ease. One motion language that scales to page transitions, scroll reveals and a hero reel.',
-  },
-  {
-    key: 'broadcast',
-    name: 'Broadcast',
-    vibe: 'The control room. Dark panels, a live timecode, tally-light red, focus brackets. It feels like the tech Regi actually runs.',
-    swatches: [
-      { name: 'Studio', hex: '#0B0C0D' },
-      { name: 'Panel', hex: '#15171A' },
-      { name: 'Signal', hex: '#EEF0EC' },
-      { name: 'Steel', hex: '#8B9096' },
-      { name: 'Tally red', hex: '#FF3B2F' },
-      { name: 'Preview green', hex: '#3DDC84' },
-    ],
-    type: ['Doto 900 · dot matrix', 'Geist Sans 600', 'Geist Sans 400', 'Geist Mono · caps'],
-    motion: 'Snap cuts like switching cameras: sections flicker on, focus brackets lock onto what you touch, the REC light blinks and the timecode always runs.',
-  },
-] as const;
-
 const roles = PROFILE.roles.join(' · ');
+
+const changes = [
+  ['Timers', 'No more random numbers. The timecode is the real time on your phone, down to the frame.'],
+  ['Frame', 'The whole site is a camera preview: REC light, timecode, framing corners and a center mark on every page.'],
+  ['Footage', 'The home page shows footage in the preview. A stream still for now, your highlight reel later (muted, tap for sound).'],
+  ['Drawing', 'The falling-up drawing is gone.'],
+];
+
+const readouts = [
+  ['● REC', 'Top left', 'The camera is rolling. Blinks once a second.'],
+  ['TOD 00:00:00:00', 'Top middle', 'Time of day: hours, minutes, seconds, frames. It’s the visitor’s real clock.'],
+  ['30P', 'Top right', 'The frame rate the timecode counts in (30 frames a second).'],
+  ['STYLE GUIDE', 'Bottom left', 'Which page you’re on.'],
+  ['THU 24 SEP 2026', 'Bottom middle', 'Today’s date on the visitor’s phone.'],
+  ['390×844', 'Bottom right', 'The visitor’s screen size, live. Turn your phone and it changes.'],
+];
+
+const swatches = [
+  { name: 'Studio', hex: '#0B0C0D', use: 'Background' },
+  { name: 'Panel', hex: '#15171A', use: 'Cards, sheets' },
+  { name: 'Signal', hex: '#EEF0EC', use: 'Text, corners' },
+  { name: 'Steel', hex: '#8B9096', use: 'Secondary text' },
+  { name: 'Tally red', hex: '#FF3B2F', use: 'REC, Book me' },
+  { name: 'Preview green', hex: '#3DDC84', use: 'Tap, sent, live' },
+];
 ---
 
-<Base title={`Style guide — ${PROFILE.wordmark}`} description="Three look directions for regiwock.com." noindex>
-  <header class="sg-top">
-    <div class="sg-intro">
-      <p class="sg-kicker">{PROFILE.wordmark} · Style guide · Round 1 of 3</p>
-      <h1 class="sg-title">Pick a look.</h1>
-      <p class="sg-text">
-        Same content, three skins. Tap the buttons and the card to see the motion. Reply with <b>1</b>, <b>2</b>, <b>3</b>, or a mix
-        (like “2’s layout with 3’s colors”).
-      </p>
+<Base title={`Style guide — ${PROFILE.wordmark}`} description="The Viewfinder look for regiwock.com." noindex>
+  <!-- Viewfinder frame: fixed over every page. All readouts are real. -->
+  <div class="finder" aria-hidden="true">
+    <div class="bar bar-top">
+      <span class="rec"><i></i> REC</span>
+      <span class="num"><span class="dim">TOD</span> <span data-tc>--:--:--:--</span></span>
+      <span>30P</span>
     </div>
-  </header>
-  <nav class="sg-tabs" aria-label="Directions">
-      {directions.map((d, i) => (
-        <button type="button" data-tab={i} aria-current={i === 0 ? 'true' : undefined}>
-          <span>{i + 1}</span> {d.name}
-        </button>
-      ))}
-  </nav>
+    <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
+    <span class="center"></span>
+    <div class="bar bar-bottom">
+      <span>Style guide</span>
+      <span class="num" data-date>&nbsp;</span>
+      <span class="num" data-size>&nbsp;</span>
+    </div>
+  </div>
 
-  <main class="track" data-track>
-    {
-      directions.map((d, i) => (
-        <section class={`dir dir-${d.key}`} id={d.key} data-dir aria-labelledby={`${d.key}-name`}>
-          <header class="dir-head enter" style="--i:0">
-            <p class="label">
-              Direction {i + 1}
-              {d.key === 'broadcast' && (
-                <span class="rec">
-                  <i /> REC <span data-tc>00:00:00:00</span>
-                </span>
-              )}
-            </p>
-            <h2 id={`${d.key}-name`} class="dir-name">{d.name}</h2>
-            <p class="dir-vibe">{d.vibe}</p>
-          </header>
+  <main class="sg">
+    <section class="block scene" data-scene>
+      <p class="label muted enter" style="--i:0">{PROFILE.wordmark} · Style guide · Round 2 of 3</p>
+      <h1 class="display sg-title enter" style="--i:1">Viewfinder</h1>
+      <p class="lead enter" style="--i:2">
+        You picked 3. It’s now a camera preview: the whole site sits inside the frame, and every number on screen is real.
+      </p>
+      <ul class="changes enter" style="--i:3">
+        {changes.map(([k, v]) => (
+          <li><span class="label">{k}</span><span>{v}</span></li>
+        ))}
+      </ul>
+    </section>
 
-          {/* Hero sample */}
-          <div class="block">
-            <p class="label block-label">Hero sample</p>
-            <div class="hero">
-              <div class="hero-bar enter" style="--i:1">
-                <span class="hero-mark">{PROFILE.wordmark}</span>
-                <span class="label">Work ↗</span>
-              </div>
-              <p class="hero-pitch" aria-label={PROFILE.pitch}>
-                <span class="line enter" style="--i:2"><span>The glue</span></span>
-                <span class="line enter" style="--i:3"><span>since 1999.</span></span>
-              </p>
-              <p class="label hero-roles enter" style="--i:4">{roles}</p>
-              <div class="enter" style="--i:5">
-                <button type="button" class="b b-primary">
-                  <span class="bk" aria-hidden="true"><i /><i /><i /><i /></span>
-                  Book me <span class="arr" aria-hidden="true">→</span>
-                </button>
-              </div>
-              {d.key === 'notebook' && <p class="hand hero-note enter" style="--i:6">fig. 1 — regi, falling up</p>}
-            </div>
-            <button type="button" class="replay label" data-replay>↻ Replay motion</button>
+    <!-- Hero sample: the camera preview with footage in it -->
+    <section class="block scene" data-scene>
+      <p class="label block-label">Home page sample</p>
+      <div class="monitor">
+        <div class="footage">
+          {thumb && <img src={thumb} alt="" decoding="async" onerror="this.remove()" />}
+        </div>
+        <span class="lock" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <div class="mon-top enter" style="--i:0">
+          <span class="display mon-mark">{PROFILE.wordmark}</span>
+          <span class="label">Work ↗</span>
+        </div>
+        <p class="label mon-src enter" style="--i:1">Footage · {sample.name}</p>
+        <div class="mon-bottom">
+          <p class="display pitch" aria-label={PROFILE.pitch}>
+            <span class="enter" style="--i:2">The glue</span>
+            <span class="enter" style="--i:3">since 1999.</span>
+          </p>
+          <p class="label muted enter" style="--i:4">{roles}</p>
+          <div class="mon-actions enter" style="--i:5">
+            <button type="button" class="b b-primary">
+              <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              Book me <span aria-hidden="true">→</span>
+            </button>
+            <button type="button" class="b b-sound" aria-pressed="false" data-sound>
+              <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              <span data-sound-label>Muted · tap for sound</span>
+            </button>
           </div>
+        </div>
+      </div>
+      <p class="note">This is a still from the {sample.name} stream. Your highlight reel plays here later (roadmap 5.3). The sound button is just the look for now.</p>
+      <button type="button" class="replay label" data-replay>↻ Replay motion</button>
+    </section>
 
-          {/* Colors */}
-          <div class="block">
-            <p class="label block-label">Colors</p>
-            <ul class="swatches">
-              {d.swatches.map((s) => (
-                <li>
-                  <span class="chip" style={`background:${'fill' in s ? s.fill : s.hex}`} />
-                  <span class="sw-name">{s.name}</span>
-                  <span class="label sw-hex">{s.hex}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <section class="block scene" data-scene>
+      <p class="label block-label">The frame · on every page</p>
+      <ul class="readouts">
+        {readouts.map(([sample, where, what]) => (
+          <li>
+            <span class="label ro-sample">{sample}</span>
+            <span class="label muted">{where}</span>
+            <span class="ro-what">{what}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="note">Plus four framing corners and a faint center mark, like the guides on a camera screen.</p>
+    </section>
 
-          {/* Type */}
-          <div class="block">
-            <p class="label block-label">Type</p>
-            <div class="type">
-              <p class="label t-meta">Display · {d.type[0]}</p>
-              <p class="t-display">Book me.</p>
-              <p class="label t-meta">Heading · {d.type[1]}</p>
-              <p class="t-h">Stream production</p>
-              <p class="label t-meta">Body · {d.type[2]}</p>
-              <p class="t-body">I like putting smart, creative people from different worlds in the same room and giving everyone a voice.</p>
-              <p class="label t-meta">Label · {d.type[3]}</p>
-              <p class="label t-label">Camera · Tech setup · Live</p>
-              {d.type[4] && (
-                <>
-                  <p class="label t-meta">Note · {d.type[4]}</p>
-                  <p class="hand t-hand">this one's my favorite →</p>
-                </>
-              )}
-            </div>
-          </div>
+    <section class="block scene" data-scene>
+      <p class="label block-label">Colors</p>
+      <ul class="swatches">
+        {swatches.map((s) => (
+          <li>
+            <span class="chip" style={`background:${s.hex}`}></span>
+            <span class="sw-name">{s.name}</span>
+            <span class="label muted sw-meta">{s.hex} · {s.use}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
 
-          {/* Buttons */}
-          <div class="block">
-            <p class="label block-label">Buttons</p>
-            <div class="btn-grid">
-              <div>
-                <p class="label t-meta">Primary</p>
-                <button type="button" class="b b-primary">
-                  <span class="bk" aria-hidden="true"><i /><i /><i /><i /></span>
-                  Book me <span class="arr" aria-hidden="true">→</span>
-                </button>
-              </div>
-              <div>
-                <p class="label t-meta">Secondary</p>
-                <button type="button" class="b b-secondary">
-                  <span class="bk" aria-hidden="true"><i /><i /><i /><i /></span>
-                  See work
-                </button>
-              </div>
-              <div aria-hidden="true">
-                <p class="label t-meta">Primary · hover</p>
-                <span class="b b-primary is-hover">
-                  <span class="bk"><i /><i /><i /><i /></span>
-                  Book me <span class="arr">→</span>
-                </span>
-              </div>
-              <div aria-hidden="true">
-                <p class="label t-meta">Secondary · hover</p>
-                <span class="b b-secondary is-hover">
-                  <span class="bk"><i /><i /><i /><i /></span>
-                  See work
-                </span>
-              </div>
-            </div>
-          </div>
+    <section class="block scene" data-scene>
+      <p class="label block-label">Type</p>
+      <div class="type">
+        <p class="label muted t-meta">Display · Doto 900 · dot matrix</p>
+        <p class="display t-display">Book me.</p>
+        <p class="label muted t-meta">Heading · Geist Sans 600</p>
+        <p class="t-h">Stream production</p>
+        <p class="label muted t-meta">Body · Geist Sans 400</p>
+        <p class="t-body">I like putting smart, creative people from different worlds in the same room and giving everyone a voice.</p>
+        <p class="label muted t-meta">Label · Geist Mono · caps</p>
+        <p class="label">Camera · Tech setup · Live</p>
+        <p class="label muted t-meta">Readout · Geist Mono · even-width numbers</p>
+        <p class="label num t-readout"><span class="dim">TOD</span> <span data-tc>--:--:--:--</span></p>
+      </div>
+    </section>
 
-          {/* Card */}
-          <div class="block">
-            <p class="label block-label">Work card · tap it</p>
-            <article class="card" tabindex="0" data-card>
-              <div class="card-media">
-                {thumb && <img src={thumb} alt="" loading="lazy" decoding="async" onerror="this.remove()" />}
-                {d.key === 'broadcast' && (
-                  <span class="cam" aria-hidden="true">
-                    <i /><i /><i /><i />
-                    <span class="label cam-rec"><b /> REC</span>
-                    <span class="label cam-id">CAM 1</span>
-                    <span class="label cam-tc" data-tc>00:00:00:00</span>
-                  </span>
-                )}
-                {d.key === 'notebook' && <span class="hand card-note" aria-hidden="true">← tap to play</span>}
-              </div>
-              <div class="card-body">
-                <div>
-                  <p class="label card-tags"><span class="tag">Stream</span> YouTube</p>
-                  <h3 class="card-title">{sample.name}</h3>
-                  <p class="card-line">{sample.roles.join(' · ')}</p>
-                </div>
-                <span class="card-go" aria-hidden="true">→</span>
-              </div>
-            </article>
-          </div>
+    <section class="block scene" data-scene>
+      <p class="label block-label">Buttons</p>
+      <div class="btn-grid">
+        <div>
+          <p class="label muted t-meta">Primary</p>
+          <button type="button" class="b b-primary">
+            <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            Book me <span aria-hidden="true">→</span>
+          </button>
+        </div>
+        <div>
+          <p class="label muted t-meta">Secondary</p>
+          <button type="button" class="b b-secondary">
+            <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            See work
+          </button>
+        </div>
+        <div aria-hidden="true">
+          <p class="label muted t-meta">Primary · hover</p>
+          <span class="b b-primary is-hover">
+            <span class="bk"><i></i><i></i><i></i><i></i></span>
+            Book me <span>→</span>
+          </span>
+        </div>
+        <div aria-hidden="true">
+          <p class="label muted t-meta">Secondary · hover</p>
+          <span class="b b-secondary is-hover">
+            <span class="bk"><i></i><i></i><i></i><i></i></span>
+            See work
+          </span>
+        </div>
+      </div>
+      <p class="note">Corners snap onto whatever you touch, like a camera locking focus.</p>
+    </section>
 
-          {/* Motion */}
-          <div class="block">
-            <p class="label block-label">Motion</p>
-            <p class="motion">{d.motion}</p>
+    <section class="block scene" data-scene>
+      <p class="label block-label">Work card · tap it</p>
+      <article class="card" tabindex="0" data-card>
+        <div class="card-media">
+          {thumb && <img src={thumb} alt="" loading="lazy" decoding="async" onerror="this.remove()" />}
+          <span class="lock" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="label card-rec" aria-hidden="true"><b></b> Play</span>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="label card-tags"><span class="tag">Stream</span> <span class="muted">YouTube</span></p>
+            <h3 class="card-title">{sample.name}</h3>
+            <p class="card-line muted">{sample.roles.join(' · ')}</p>
           </div>
-        </section>
-      ))
-    }
+          <span class="card-go" aria-hidden="true">→</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="block scene" data-scene>
+      <p class="label block-label">Motion</p>
+      <p class="t-body">
+        Snap cuts, like switching cameras. Each section flickers on as it enters the frame, corners lock onto what you touch, and the REC
+        light blinks. The timecode moves because it’s the real time. Nothing else counts or spins.
+      </p>
+    </section>
   </main>
 </Base>
 
 <script>
-  const track = document.querySelector<HTMLElement>('[data-track]')!;
-  const panels = [...document.querySelectorAll<HTMLElement>('[data-dir]')];
-  const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Phone: tabs swipe the track. Desktop shows all three, so tabs are hidden.
-  tabs.forEach((tab, i) =>
-    tab.addEventListener('click', () => {
-      track.scrollTo({ left: panels[i].offsetLeft, behavior: reduce ? 'auto' : 'smooth' });
-      if (track.getBoundingClientRect().top < 0) track.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
-    }),
-  );
-  let raf = 0;
-  track.addEventListener('scroll', () => {
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(() => {
-      const current = Math.round(track.scrollLeft / track.clientWidth);
-      tabs.forEach((t, i) => (i === current ? t.setAttribute('aria-current', 'true') : t.removeAttribute('aria-current')));
-    });
-  });
+  // Real readouts: the visitor's time of day (HH:MM:SS:FF at 30fps), date and screen size.
+  const tcs = document.querySelectorAll<HTMLElement>('[data-tc]');
+  const dateEl = document.querySelector<HTMLElement>('[data-date]');
+  const sizeEl = document.querySelector<HTMLElement>('[data-size]');
+  const pad = (n: number) => String(n).padStart(2, '0');
+  let lastTc = '';
+  const tick = () => {
+    const d = new Date();
+    const tc = [d.getHours(), d.getMinutes(), d.getSeconds(), Math.floor(d.getMilliseconds() / (1000 / 30))].map(pad).join(':');
+    if (tc !== lastTc) {
+      lastTc = tc;
+      tcs.forEach((el) => (el.textContent = tc));
+    }
+    if (dateEl) {
+      const [wd, mo] = [d.toLocaleDateString('en-US', { weekday: 'short' }), d.toLocaleDateString('en-US', { month: 'short' })];
+      dateEl.textContent = `${wd} ${pad(d.getDate())} ${mo} ${d.getFullYear()}`;
+    }
+  };
+  // Reduced motion: update once a second instead of every frame.
+  if (reduce) setInterval(tick, 1000);
+  else {
+    const loop = () => (tick(), requestAnimationFrame(loop));
+    requestAnimationFrame(loop);
+  }
+  tick();
+  const size = () => sizeEl && (sizeEl.textContent = `${innerWidth}×${innerHeight}`);
+  addEventListener('resize', size);
+  size();
 
-  // Entrance motion plays when a direction comes into view; "Replay" restarts it.
-  const play = (panel: HTMLElement) => {
-    panel.classList.remove('play');
-    void panel.offsetWidth;
-    panel.classList.add('play');
+  // Sections flicker on as they enter the frame; "Replay" restarts the hero.
+  const play = (el: HTMLElement) => {
+    el.classList.remove('play');
+    void el.offsetWidth;
+    el.classList.add('play');
   };
   const io = new IntersectionObserver(
     (entries) => entries.forEach((e) => e.isIntersecting && (play(e.target as HTMLElement), io.unobserve(e.target))),
-    { threshold: 0.2 },
+    { threshold: 0.15 },
   );
-  panels.forEach((p) => io.observe(p));
-  document.querySelectorAll<HTMLElement>('[data-replay]').forEach((b) => b.addEventListener('click', () => play(b.closest('[data-dir]')!)));
+  document.querySelectorAll<HTMLElement>('[data-scene]').forEach((s) => io.observe(s));
+  document.querySelectorAll<HTMLElement>('[data-replay]').forEach((b) => b.addEventListener('click', () => play(b.closest('[data-scene]')!)));
 
-  // Phones can't hover: tapping the card toggles its hover state.
+  // Phones can't hover: tapping the card toggles its focus-lock state.
   document.querySelectorAll<HTMLElement>('[data-card]').forEach((c) => c.addEventListener('click', () => c.classList.toggle('is-on')));
 
-  // Broadcast: running timecode (HH:MM:SS:FF at 30fps).
-  const tcs = document.querySelectorAll<HTMLElement>('[data-tc]');
-  if (tcs.length && !reduce) {
-    const t0 = performance.now();
-    let last = -1;
-    const tick = (now: number) => {
-      const f = Math.floor(((now - t0) / 1000) * 30);
-      if (f !== last) {
-        last = f;
-        const tc = [Math.floor(f / 108000), Math.floor(f / 1800) % 60, Math.floor(f / 30) % 60, f % 30]
-          .map((n) => String(n).padStart(2, '0'))
-          .join(':');
-        tcs.forEach((el) => (el.textContent = tc));
-      }
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }
+  // Sound toggle: look only until the reel exists.
+  document.querySelectorAll<HTMLButtonElement>('[data-sound]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(on));
+      b.querySelector('[data-sound-label]')!.textContent = on ? 'Sound on' : 'Muted · tap for sound';
+    }),
+  );
 </script>
 
 <style>
-  /* No paper grain on this page: it would sit on top of all three directions. */
+  /* No paper grain or notebook background on this page. */
   :global(body::after) { display: none; }
-  :global(body) { background: #e9e9e5; }
-
-  /* ---------- Page chrome (neutral, so it doesn't favor a direction) ---------- */
-  .sg-top { background: #e9e9e5; color: #111; font-family: "Inter Tight", system-ui, sans-serif; }
-  .sg-intro { padding: 28px 16px 20px; max-width: 46rem; }
-  .sg-kicker { font: 500 12px/1.4 "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.06em; text-transform: uppercase; color: #555; }
-  .sg-title { margin-top: 10px; font-size: 40px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
-  .sg-text { margin-top: 12px; font-size: 16px; line-height: 1.5; color: #333; }
-  .sg-tabs {
-    position: sticky; top: 0; z-index: 30;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
-    padding: 8px 16px; background: rgb(233 233 229 / 0.92); backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgb(0 0 0 / 0.08);
-  }
-  .sg-tabs button {
-    min-height: 44px; border-radius: 10px; font: 500 14px/1 "Inter Tight", system-ui, sans-serif; color: #333;
-    background: transparent; transition: background-color 0.2s, color 0.2s;
-  }
-  .sg-tabs button span { font-family: "JetBrains Mono", monospace; font-size: 12px; opacity: 0.6; margin-right: 2px; }
-  .sg-tabs button[aria-current] { background: #111; color: #fff; }
-
-  /* ---------- Track: swipe on phones, three columns on desktop ---------- */
-  .track {
-    position: relative;
-    display: flex; align-items: flex-start;
-    overflow-x: auto; overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory; scrollbar-width: none;
-  }
-  .track::-webkit-scrollbar { display: none; }
-  .dir { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
-  @media (min-width: 1024px) {
-    .sg-intro { padding: 40px 32px 32px; }
-    .sg-title { font-size: 56px; }
-    .sg-tabs { display: none; }
-    .track { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; overflow: visible; }
-  }
-
-  /* ---------- Shared structure (skins come below) ---------- */
-  .dir {
+  :global(body) {
+    --bg: #0b0c0d; --surface: #15171a; --ink: #eef0ec; --muted: #8b9096; --line: rgb(238 240 236 / 0.12);
+    --accent: #ff3b2f; --ok: #3ddc84;
+    --fd: "Doto", monospace; --fb: "Geist Sans", system-ui, sans-serif; --fl: "Geist Mono", ui-monospace, monospace;
+    --bar: 40px;
     background: var(--bg); color: var(--ink); font-family: var(--fb);
-    padding: 28px 16px 56px; min-height: 100svh;
   }
-  @media (min-width: 1024px) { .dir { padding: 36px 28px 72px; } }
-  .dir .label { font-family: var(--fl); font-size: 12px; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase; }
-  .dir-head .label { color: var(--muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .dir-name { margin-top: 8px; font-family: var(--fd); }
-  .dir-vibe { margin-top: 10px; font-size: 16px; line-height: 1.5; color: var(--muted); max-width: 34ch; }
 
-  .block { margin-top: 36px; }
-  .block-label { color: var(--muted); padding-bottom: 10px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+  /* ---------- Viewfinder frame ---------- */
+  .finder { position: fixed; inset: 0; z-index: 40; pointer-events: none; color: var(--ink); }
+  .bar {
+    position: absolute; left: 0; right: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
+    height: var(--bar); padding: 0 16px; font: 500 12px/1 var(--fl); letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .bar > :last-child { justify-self: end; }
+  .bar-top {
+    top: 0; height: calc(var(--bar) + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top);
+    background: linear-gradient(rgb(11 12 13 / 0.95), rgb(11 12 13 / 0.75));
+  }
+  .bar-bottom {
+    bottom: 0; height: calc(var(--bar) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+    background: linear-gradient(rgb(11 12 13 / 0.75), rgb(11 12 13 / 0.95));
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  .dim { color: var(--muted); }
+  .rec { display: inline-flex; align-items: center; gap: 6px; }
+  .rec i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .corner { position: absolute; width: 18px; height: 18px; border: 0 solid rgb(238 240 236 / 0.7); }
+  .c1 { top: calc(var(--bar) + env(safe-area-inset-top) + 6px); left: 8px; border-top-width: 2px; border-left-width: 2px; }
+  .c2 { top: calc(var(--bar) + env(safe-area-inset-top) + 6px); right: 8px; border-top-width: 2px; border-right-width: 2px; }
+  .c3 { bottom: calc(var(--bar) + env(safe-area-inset-bottom) + 6px); left: 8px; border-bottom-width: 2px; border-left-width: 2px; }
+  .c4 { bottom: calc(var(--bar) + env(safe-area-inset-bottom) + 6px); right: 8px; border-bottom-width: 2px; border-right-width: 2px; }
+  .center { position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; translate: -50% -50%; opacity: 0.22; }
+  .center::before, .center::after { content: ""; position: absolute; background: var(--ink); }
+  .center::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+  .center::after { top: 50%; left: 0; right: 0; height: 1px; }
 
-  .hero { position: relative; padding: 18px; border: 1px solid var(--line); min-height: 300px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
-  .hero-bar { display: flex; justify-content: space-between; align-items: center; }
-  .hero-mark { font-family: var(--fd); }
-  .hero-pitch { margin-top: auto; font-family: var(--fd); }
-  .line { display: block; overflow: hidden; padding-bottom: 0.1em; margin-bottom: -0.1em; }
-  .line > span { display: block; }
-  .hero-roles { color: var(--muted); }
-  .replay { margin-top: 10px; min-height: 44px; color: var(--muted); }
+  /* ---------- Page ---------- */
+  .sg {
+    max-width: 60rem; margin: 0 auto;
+    padding: calc(var(--bar) + env(safe-area-inset-top) + 40px) 28px calc(var(--bar) + env(safe-area-inset-bottom) + 56px);
+  }
+  @media (min-width: 1024px) { .sg { padding-left: 48px; padding-right: 48px; } }
+  .sg .label { font-family: var(--fl); font-size: 12px; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase; }
+  .sg .display { font-family: var(--fd); font-weight: 900; text-transform: uppercase; letter-spacing: 0; line-height: 1; }
+  .muted { color: var(--muted); }
+  .block + .block { margin-top: 56px; }
+  .block-label { color: var(--muted); padding-bottom: 10px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+  .note { margin-top: 12px; font-size: 14px; line-height: 1.5; color: var(--muted); max-width: 52ch; }
+
+  .sg-title { margin-top: 12px; font-size: clamp(44px, 12vw, 88px); }
+  .lead { margin-top: 16px; font-size: 18px; line-height: 1.5; color: #c9ccc8; max-width: 44ch; }
+  .changes { margin-top: 24px; display: grid; gap: 12px; }
+  .changes li { display: grid; grid-template-columns: 5.5rem 1fr; gap: 12px; font-size: 15px; line-height: 1.5; }
+  .changes .label { color: var(--ok); padding-top: 2px; }
+
+  /* ---------- Monitor (hero sample) ---------- */
+  .monitor {
+    position: relative; overflow: hidden; isolation: isolate;
+    min-height: min(560px, 72svh); padding: 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    background: #000; border: 1px solid var(--line);
+  }
+  @media (min-width: 720px) { .monitor { aspect-ratio: 16 / 9; min-height: 0; padding: 28px; } }
+  @media (max-width: 380px) { .sg { padding-left: 20px; padding-right: 20px; } .mon-actions .b { padding: 0 14px; } }
+  .footage { position: absolute; inset: 0; z-index: -1; background: radial-gradient(120% 90% at 60% 30%, #2a2d31, #0b0c0d); }
+  .footage img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.85) brightness(0.72); }
+  .footage::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(rgb(0 0 0 / 0.55), transparent 30%, transparent 45%, rgb(0 0 0 / 0.85)),
+      repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.03) 0 1px, transparent 1px 3px);
+  }
+  .monitor > .lock { inset: 10px; opacity: 0.8; }
+  .mon-top { display: flex; justify-content: space-between; align-items: center; }
+  .mon-mark { font-size: 20px; }
+  .mon-src { color: var(--muted); }
+  .mon-bottom { margin-top: auto; display: grid; gap: 12px; }
+  .pitch { font-size: clamp(38px, 10.5vw, 72px); }
+  .pitch span { display: block; }
+  .mon-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+  .replay { margin-top: 4px; min-height: 44px; color: var(--muted); }
   .replay:hover { color: var(--ink); }
 
-  .swatches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 10px; }
-  .chip { display: block; aspect-ratio: 1.4; border: 1px solid var(--line); }
-  .sw-name { display: block; margin-top: 8px; font-size: 14px; font-weight: 500; }
-  .sw-hex { display: block; color: var(--muted); font-size: 11px; }
+  /* ---------- Readouts ---------- */
+  .readouts { display: grid; gap: 0; }
+  .readouts li { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .ro-sample { font-variant-numeric: tabular-nums; }
+  .ro-what { grid-column: 1 / -1; font-size: 15px; line-height: 1.5; color: #c9ccc8; }
 
+  /* ---------- Colors / type ---------- */
+  .swatches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+  @media (min-width: 720px) { .swatches { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .chip { display: block; aspect-ratio: 1.6; border: 1px solid var(--line); border-radius: 2px; }
+  .sw-name { display: block; margin-top: 8px; font-size: 15px; font-weight: 600; }
+  .sw-meta { display: block; margin-top: 2px; font-size: 11px !important; }
   .type { display: grid; gap: 6px; }
-  .t-meta { color: var(--muted); margin-top: 14px; font-size: 11px !important; }
+  .t-meta { margin-top: 16px; font-size: 11px !important; }
   .t-meta:first-child { margin-top: 0; }
-  .t-display { font-family: var(--fd); }
-  .t-body { font-size: 17px; line-height: 1.55; }
-  .t-hand, .hero-note, .card-note { font-family: "Caveat", cursive; font-weight: 500; }
+  .t-display { font-size: 52px; color: var(--accent); }
+  .t-h { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+  .t-body { font-size: 17px; line-height: 1.55; color: #c9ccc8; max-width: 52ch; }
+  .t-readout { font-size: 16px !important; }
 
+  /* ---------- Buttons ---------- */
   .btn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; align-items: end; }
   .btn-grid .t-meta { margin-bottom: 8px; }
   .b {
     position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
-    min-height: 48px; padding: 0 20px; white-space: nowrap; cursor: pointer;
+    min-height: 48px; padding: 0 20px; white-space: nowrap; cursor: pointer; border-radius: 2px;
+    font: 500 13px/1 var(--fl); letter-spacing: 0.08em; text-transform: uppercase;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   }
-  .arr { display: inline-block; }
-  .bk { display: none; }
+  .b-primary { background: var(--accent); color: var(--bg); }
+  .b-primary:hover, .b-primary.is-hover { background: #ff5a4f; }
+  .b-secondary, .b-sound { border: 1px solid var(--line); color: var(--ink); }
+  .b-sound { background: rgb(11 12 13 / 0.6); }
+  .b-secondary:hover, .b-secondary.is-hover, .b-sound:hover { border-color: var(--ink); }
+  .b-sound[aria-pressed="true"] { border-color: var(--ok); color: var(--ok); }
+  .b:active { background-color: var(--ok); color: var(--bg); }
 
-  .card { display: block; cursor: pointer; outline-offset: 4px; }
-  .card-media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--surface); }
-  .card-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .card-body { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-top: 14px; }
-  .card-tags { color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  /* Focus lock: four corners that snap onto a thing, like camera autofocus */
+  .lock, .bk { position: absolute; pointer-events: none; }
+  .lock i, .bk i { position: absolute; width: 10px; height: 10px; border: 0 solid var(--ink); }
+  .lock i:nth-child(1), .bk i:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+  .lock i:nth-child(2), .bk i:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+  .lock i:nth-child(3), .bk i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+  .lock i:nth-child(4), .bk i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+  .bk { inset: -7px; opacity: 0; transition: inset 0.16s steps(2), opacity 0.16s steps(2); }
+  .b:hover .bk, .b.is-hover .bk, .b:focus-visible .bk { inset: -5px; opacity: 1; }
+
+  /* ---------- Card ---------- */
+  .card { display: block; max-width: 30rem; cursor: pointer; outline-offset: 4px; border: 1px solid var(--line); background: var(--surface); padding: 8px; border-radius: 2px; }
+  .card-media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
+  .card-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.7) brightness(0.8); transition: filter 0.2s steps(2); }
+  .card-media .lock { inset: 22px; opacity: 0.5; transition: inset 0.16s steps(2), opacity 0.16s steps(2); }
+  .card-rec { position: absolute; left: 14px; bottom: 12px; display: flex; align-items: center; gap: 6px; font-size: 11px !important; opacity: 0; text-shadow: 0 1px 2px #000; }
+  .card-rec b { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .card-body { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 6px 6px; }
+  .card-tags { display: flex; align-items: center; gap: 8px; }
+  .tag { color: var(--ok); }
+  .tag::before { content: "● "; }
   .card-title { margin-top: 6px; font-size: 21px; line-height: 1.15; font-weight: 600; }
-  .card-line { margin-top: 4px; font-size: 15px; color: var(--muted); }
-  .card-go { flex: none; display: grid; place-items: center; width: 44px; height: 44px; }
-  .motion { font-size: 16px; line-height: 1.55; max-width: 40ch; }
+  .card-line { margin-top: 4px; font-size: 15px; }
+  .card-go { flex: none; display: grid; place-items: center; width: 44px; height: 44px; font-family: var(--fl); border: 1px solid var(--line); border-radius: 2px; }
+  .card:hover img, .card.is-on img, .card:focus-visible img { filter: none; }
+  .card:hover .lock, .card.is-on .lock, .card:focus-visible .lock { inset: 12px; opacity: 1; }
+  .card:hover .card-rec, .card.is-on .card-rec, .card:focus-visible .card-rec { opacity: 1; }
+  .card:hover .card-go, .card.is-on .card-go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
-  /* =================================================================
-     1 · NOTEBOOK — current look, cleaned up
-     ================================================================= */
-  .dir-notebook {
-    --bg: #fbfaf6; --surface: #ecebe5; --ink: #1d1d1b; --muted: #6d6b66; --line: rgb(29 29 27 / 0.16);
-    --fd: "Unbounded", sans-serif; --fb: "Inter Tight", sans-serif; --fl: "JetBrains Mono", monospace;
-    --rainbow: linear-gradient(90deg, #ff2e63, #ff9f1c, #ffe600, #25e07a, #2ea8ff, #8a2eff, #ff2e63);
-    background:
-      linear-gradient(to right, transparent 0 10px, #f0a7a7 10px 11.5px, transparent 11.5px),
-      repeating-linear-gradient(to bottom, var(--bg) 0 31px, #cddcf0 31px 32px);
-  }
-  .dir-notebook .dir-name, .dir-notebook .hero-mark, .dir-notebook .hero-pitch, .dir-notebook .t-display, .dir-notebook .t-h {
-    font-weight: 800; text-transform: uppercase; letter-spacing: -0.04em; line-height: 0.95;
-  }
-  .dir-notebook .dir-name { font-size: 40px; }
-  .dir-notebook .hero { border: 1.5px solid var(--ink); background: rgb(251 250 246 / 0.6); }
-  .dir-notebook .hero-mark { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.04em; }
-  .dir-notebook .hero-pitch { font-size: 32px; }
-  .dir-notebook .hero-note { position: absolute; right: 16px; top: 64px; font-size: 22px; color: var(--muted); transform: rotate(-4deg); }
-  .dir-notebook .t-display { font-size: 38px; }
-  .dir-notebook .t-h { font-size: 20px; }
-  .dir-notebook .t-hand { font-size: 26px; }
-  .dir-notebook .chip { border: 1.5px solid var(--ink); }
-  .dir-notebook .b { border: 1.5px solid var(--ink); font-family: var(--fl); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
-  .dir-notebook .b-primary { background: var(--rainbow); background-size: 200% 100%; animation: nb-prism 6s linear infinite; }
-  .dir-notebook .b:hover, .dir-notebook .b.is-hover { background: var(--ink); color: var(--bg); }
-  .dir-notebook .b:hover .arr, .dir-notebook .b.is-hover .arr { translate: 4px 0; animation: nb-jitter 0.36s steps(3) infinite; }
-  .dir-notebook .card { border: 1.5px solid var(--ink); padding: 8px 8px 4px; background: var(--bg); rotate: -1.2deg; transition: rotate 0.3s steps(3), translate 0.3s steps(3); }
-  .dir-notebook .card-media { outline: 1px solid var(--line); }
-  .dir-notebook .card-note { position: absolute; right: 10px; bottom: 6px; font-size: 24px; color: var(--bg); background: var(--ink); padding: 0 8px; opacity: 0; transition: opacity 0.2s steps(2); }
-  .dir-notebook .card:hover, .dir-notebook .card.is-on, .dir-notebook .card:focus-visible { rotate: 0deg; translate: 0 -4px; }
-  .dir-notebook .card:hover .card-note, .dir-notebook .card.is-on .card-note, .dir-notebook .card:focus-visible .card-note { opacity: 1; }
-  .dir-notebook .tag { background: var(--ink); color: var(--bg); padding: 2px 6px; }
-  .dir-notebook .card-title { font-weight: 500; letter-spacing: -0.01em; }
-  .dir-notebook .card-go { font-family: var(--fl); }
-  @keyframes nb-prism { to { background-position: -200% 0; } }
-  @keyframes nb-jitter { 33% { transform: translate(1px, -1px); } 66% { transform: translate(-1px, 1px); } }
-  @keyframes nb-pop { from { opacity: 0; transform: translateY(10px) rotate(-2deg) scale(0.97); } to { opacity: 1; transform: none; } }
-  @keyframes nb-boil { 0% { transform: translate(0, 0) rotate(0); } 33% { transform: translate(0.5px, -0.5px) rotate(-0.3deg); } 66% { transform: translate(-0.5px, 0.5px) rotate(0.3deg); } }
-  @media (prefers-reduced-motion: no-preference) {
-    .js .dir-notebook .enter { opacity: 0; }
-    .dir-notebook.play .enter { animation: nb-pop 0.42s steps(4) both; animation-delay: calc(var(--i) * 110ms); }
-    .dir-notebook.play .hero-pitch .line > span { animation: nb-boil 0.36s steps(1) infinite; }
-  }
-
-  /* =================================================================
-     2 · STARK — simple, super clean, smooth motion
-     ================================================================= */
-  .dir-stark {
-    --bg: #ffffff; --surface: #f5f5f7; --ink: #0a0a0a; --muted: #6e6e73; --line: #e6e6e8; --accent: #2340ff;
-    --fd: "Inter Tight", sans-serif; --fb: "Inter Tight", sans-serif; --fl: "Inter Tight", sans-serif;
-    --ease: cubic-bezier(0.2, 0.7, 0, 1);
-  }
-  .dir-stark .label { font-weight: 500; letter-spacing: 0.04em; }
-  .dir-stark .dir-name, .dir-stark .hero-pitch, .dir-stark .t-display { font-weight: 600; letter-spacing: -0.045em; line-height: 0.95; }
-  .dir-stark .dir-name { font-size: 44px; }
-  .dir-stark .hero { border: 0; border-radius: 24px; background: var(--surface); padding: 20px; }
-  .dir-stark .hero-mark { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-  .dir-stark .hero-pitch { font-size: 48px; }
-  .dir-stark .t-display { font-size: 52px; }
-  .dir-stark .t-h { font-size: 26px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.1; }
-  .dir-stark .t-body { color: #3a3a3c; }
-  .dir-stark .chip { border-radius: 14px; }
-  .dir-stark .block-label { border: 0; padding-bottom: 0; }
-  .dir-stark .b { border-radius: 999px; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; overflow: hidden; isolation: isolate; transition: color 0.45s var(--ease), background-color 0.45s var(--ease); }
-  .dir-stark .b-primary { background: var(--ink); color: #fff; }
-  .dir-stark .b-primary::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.5s var(--ease); }
-  .dir-stark .b-primary:hover::before, .dir-stark .b-primary.is-hover::before { transform: scaleX(1); }
-  .dir-stark .b-secondary { background: var(--surface); color: var(--ink); }
-  .dir-stark .b-secondary:hover, .dir-stark .b-secondary.is-hover { background: #e8e8ed; }
-  .dir-stark .arr { transition: transform 0.45s var(--ease); }
-  .dir-stark .b:hover .arr, .dir-stark .b.is-hover .arr { transform: translateX(4px); }
-  .dir-stark .b:active { transform: scale(0.97); }
-  .dir-stark .card { border-radius: 24px; overflow: hidden; background: var(--surface); }
-  .dir-stark .card-media img { transition: transform 0.9s var(--ease); }
-  .dir-stark .card-body { padding: 16px 18px 20px; }
-  .dir-stark .card-title { letter-spacing: -0.02em; }
-  .dir-stark .tag { color: var(--accent); }
-  .dir-stark .card-go { border-radius: 999px; background: var(--ink); color: #fff; transition: background-color 0.45s var(--ease), transform 0.45s var(--ease); transform: rotate(-45deg); }
-  .dir-stark .card:hover img, .dir-stark .card.is-on img, .dir-stark .card:focus-visible img { transform: scale(1.06); }
-  .dir-stark .card:hover .card-go, .dir-stark .card.is-on .card-go, .dir-stark .card:focus-visible .card-go { background: var(--accent); transform: rotate(0); }
-  @keyframes st-rise { from { transform: translateY(105%); } to { transform: none; } }
-  @keyframes st-fade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: no-preference) {
-    .js .dir-stark .enter:not(.line) { opacity: 0; }
-    .js .dir-stark .line > span { transform: translateY(105%); }
-    .dir-stark.play .enter:not(.line) { animation: st-fade 0.8s var(--ease) both; animation-delay: calc(var(--i) * 90ms); }
-    .dir-stark.play .line > span { animation: st-rise 0.9s var(--ease) both; animation-delay: calc(var(--i) * 90ms); }
-  }
-
-  /* =================================================================
-     3 · BROADCAST — the control room
-     ================================================================= */
-  .dir-broadcast {
-    --bg: #0b0c0d; --surface: #15171a; --ink: #eef0ec; --muted: #8b9096; --line: rgb(238 240 236 / 0.12);
-    --accent: #ff3b2f; --ok: #3ddc84;
-    --fd: "Doto", monospace; --fb: "Geist Sans", sans-serif; --fl: "Geist Mono", monospace;
-  }
-  .dir-broadcast .dir-name, .dir-broadcast .hero-mark, .dir-broadcast .hero-pitch, .dir-broadcast .t-display {
-    font-weight: 900; text-transform: uppercase; letter-spacing: 0; line-height: 1;
-  }
-  .dir-broadcast .dir-name { font-size: 40px; }
-  .dir-broadcast .rec { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
-  .dir-broadcast .rec i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-  .dir-broadcast .rec span, .dir-broadcast .cam-tc { font-variant-numeric: tabular-nums; }
-  .dir-broadcast .hero { background: var(--surface); border-color: var(--line); }
-  .dir-broadcast .hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 3px); }
-  .dir-broadcast .hero-mark { font-size: 20px; }
-  .dir-broadcast .hero-pitch { font-size: 40px; }
-  .dir-broadcast .t-display { font-size: 48px; color: var(--accent); }
-  .dir-broadcast .t-h { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
-  .dir-broadcast .t-body { color: #c9ccc8; }
-  .dir-broadcast .chip { border-radius: 2px; }
-  .dir-broadcast .b { font-family: var(--fl); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 2px; transition: background-color 0.15s, border-color 0.15s; }
-  .dir-broadcast .b-primary { background: var(--accent); color: #0b0c0d; }
-  .dir-broadcast .b-primary:hover, .dir-broadcast .b-primary.is-hover { background: #ff5a4f; }
-  .dir-broadcast .b-secondary { border: 1px solid var(--line); color: var(--ink); }
-  .dir-broadcast .b-secondary:hover, .dir-broadcast .b-secondary.is-hover { border-color: var(--ink); }
-  /* Focus brackets: snap onto the button like camera autofocus */
-  .dir-broadcast .bk { display: block; position: absolute; inset: -7px; pointer-events: none; opacity: 0; transition: inset 0.16s steps(2), opacity 0.16s steps(2); }
-  .dir-broadcast .bk i, .dir-broadcast .cam > i { position: absolute; width: 10px; height: 10px; border: 0 solid var(--ink); }
-  .dir-broadcast .bk i:nth-child(1), .dir-broadcast .cam > i:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
-  .dir-broadcast .bk i:nth-child(2), .dir-broadcast .cam > i:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
-  .dir-broadcast .bk i:nth-child(3), .dir-broadcast .cam > i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
-  .dir-broadcast .bk i:nth-child(4), .dir-broadcast .cam > i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
-  .dir-broadcast .b:hover .bk, .dir-broadcast .b.is-hover .bk, .dir-broadcast .b:focus-visible .bk { inset: -5px; opacity: 1; }
-  .dir-broadcast .b:active { background-color: var(--ok); }
-  .dir-broadcast .card { border: 1px solid var(--line); background: var(--surface); padding: 8px; border-radius: 2px; }
-  .dir-broadcast .card-media { background: #000; }
-  .dir-broadcast .card-media img { filter: grayscale(0.7) brightness(0.8); transition: filter 0.2s steps(2); }
-  .dir-broadcast .cam { position: absolute; inset: 22px; opacity: 0.5; transition: inset 0.16s steps(2), opacity 0.16s steps(2); }
-  .dir-broadcast .cam .label { position: absolute; font-size: 11px; color: var(--ink); text-shadow: 0 1px 2px #000; }
-  .dir-broadcast .cam-rec { top: 14px; left: 16px; display: flex; align-items: center; gap: 6px; }
-  .dir-broadcast .cam-rec b { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-  .dir-broadcast .cam-id { top: 14px; right: 16px; }
-  .dir-broadcast .cam-tc { bottom: 12px; left: 16px; }
-  .dir-broadcast .card-body { padding: 12px 6px 6px; }
-  .dir-broadcast .tag { color: var(--ok); }
-  .dir-broadcast .tag::before { content: "● "; }
-  .dir-broadcast .card-go { font-family: var(--fl); border: 1px solid var(--line); border-radius: 2px; }
-  .dir-broadcast .card:hover img, .dir-broadcast .card.is-on img, .dir-broadcast .card:focus-visible img { filter: none; }
-  .dir-broadcast .card:hover .cam, .dir-broadcast .card.is-on .cam, .dir-broadcast .card:focus-visible .cam { inset: 12px; opacity: 1; }
-  .dir-broadcast .card:hover .card-go, .dir-broadcast .card.is-on .card-go { background: var(--accent); color: #0b0c0d; border-color: var(--accent); }
-  @keyframes bc-acquire {
+  /* ---------- Motion ---------- */
+  @keyframes acquire {
     0% { opacity: 0; clip-path: inset(0 0 100% 0); }
     30% { opacity: 1; }
     45% { opacity: 0.3; }
     60% { opacity: 1; }
     100% { opacity: 1; clip-path: inset(0 0 0 0); }
   }
-  @keyframes bc-blink { 50% { opacity: 0.15; } }
+  @keyframes blink { 50% { opacity: 0.15; } }
   @media (prefers-reduced-motion: no-preference) {
-    .js .dir-broadcast .enter { opacity: 0; }
-    .dir-broadcast.play .enter { animation: bc-acquire 0.45s steps(6) both; animation-delay: calc(var(--i) * 120ms); }
-    .dir-broadcast .rec i, .dir-broadcast .card:hover .cam-rec b, .dir-broadcast .card.is-on .cam-rec b { animation: bc-blink 1s steps(1) infinite; }
+    .js .scene .enter, .js .scene > .block-label { opacity: 0; }
+    .scene.play .enter, .scene.play > .block-label { animation: acquire 0.45s steps(6) both; animation-delay: calc(var(--i, 0) * 120ms); }
+    .rec i, .card-rec b { animation: blink 1s steps(1) infinite; }
   }
 </style>
