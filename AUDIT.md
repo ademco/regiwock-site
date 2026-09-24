@@ -3,12 +3,13 @@
 Audited `main` @ `666173b` (the notebook-sketch version, PR #2) on 2026-09-24.
 Method: local production build, Playwright screenshots at 360×640, 390×844 and 844×390 (landscape), 1440×900, and Lighthouse 12 mobile runs.
 Lighthouse ran on a local server, so its numbers are only a guide. Re-measure on the live URL in Phase 6.
+Approved by Regi on 2026-09-24 (roadmap item 1.1 locked).
 
 ## Top issues (fix first)
 
 | # | Issue | Severity |
 | --- | --- | --- |
-| 1 | **The Cloudflare build for PR #2 failed in under a second**, so the new version never went live. The same code builds and passes `wrangler deploy --dry-run` from a clean `npm ci`, so the fault is in the Cloudflare build setup (settings or git connection), not the code. The build log is still needed. | 🔴 Broken |
+| 1 | **Branch previews may not build.** The notebook version is live (Regi checked it on his phone on 2026-09-24), so production deploys work. But the "Workers Builds" check on every PR fails in under a second with no log, which probably means branch preview links aren't being built. The code builds and passes `wrangler deploy --dry-run` from a clean `npm ci`. If the next PR has no preview link, read the build log in the Cloudflare dashboard. | 🟠 Unverified |
 | 2 | **Regi dislikes the hero figure** ("looks like a 3rd grader drew it"). It's a code-drawn mannequin. The target is an anime-style notebook drawing (like artlist.io clip 545000). This needs real drawn frames; `npm run frames` is ready for them. | 🔴 Weak (core visual) |
 | 3 | **The booking form has never been tested end to end** on the live site (Web3Forms key is set). | 🟠 Unverified |
 | 4 | **Mobile readability:** Lighthouse says only 32% of text on the home page is at a legible size. The 11px mono labels are too small. | 🟠 Weak |
@@ -42,7 +43,7 @@ Lighthouse ran on a local server, so its numbers are only a guide. Re-measure on
 | Area | Working | Weak | Broken |
 | --- | --- | --- | --- |
 | **404** | On-brand "Lost in the clouds." | — | — |
-| **SEO / share** | Title, description, canonical, OG/Twitter tags, JSON-LD; share image shows the sketch. Lighthouse SEO 100 | Share image uses the disliked figure. `DOMAIN_CONNECTED=false` until regiwock.com leaves Beacons (expires Feb 2027) | Share previews point at workers.dev assets, which aren't updated while deploys fail (#1) |
+| **SEO / share** | Title, description, canonical, OG/Twitter tags, JSON-LD; share image shows the sketch. Lighthouse SEO 100 | Share image uses the disliked figure. `DOMAIN_CONNECTED=false` until regiwock.com leaves Beacons (expires Feb 2027) | — |
 | **Performance** (local Lighthouse, mobile) | `/` 96, `/work` 99. TBT 0 ms, CLS < 0.08 | Render-blocking CSS (~800 ms est.); heavy inline SVG on `/` | — |
 | **Accessibility** | `/` 100, `/work` 96; reduced motion respected; dialog is native | Small text, small targets, label/name mismatch on Play buttons | — |
 | **Content** | CLI (`new/list/feature/remove/frames`) works | Only 9 items, 3 of them profile links; no posts, drops or reel; placeholder dates | — |
