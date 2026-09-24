@@ -1,0 +1,17 @@
+---
+interface Props {
+  index: string;
+  title: string;
+  kicker?: string;
+  id?: string;
+}
+const { index, title, kicker, id } = Astro.props;
+---
+
+<div class="mb-8 flex flex-col gap-3 border-t border-line pt-5 sm:mb-12 sm:flex-row sm:items-end sm:justify-between" data-reveal>
+  <div>
+    <p class="label mb-3 text-muted">[{index}]{kicker && <span class="ml-3">{kicker}</span>}</p>
+    <h2 id={id} class="display text-6xl sm:text-8xl">{title}</h2>
+  </div>
+  <slot />
+</div>

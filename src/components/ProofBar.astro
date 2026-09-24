@@ -1,0 +1,33 @@
+---
+import { STATS, COLLAB_NAMES } from '../config';
+const names = [...COLLAB_NAMES, ...COLLAB_NAMES];
+---
+
+<section aria-label="Proof" class="border-y border-line">
+  <dl class="grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+    {
+      STATS.map((s, i) => (
+        <div class="flex items-baseline gap-4 px-4 py-6 sm:flex-col sm:gap-2 sm:px-8 sm:py-8" data-reveal style={`--d:${i * 90}ms`}>
+          <dt class="order-2 label max-w-[16rem] text-muted">{s.label}</dt>
+          <dd class="display order-1 text-6xl sm:text-7xl">
+            {s.value}
+            {i === 0 && <span class="accent-text">+</span>}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <div class="overflow-hidden border-t border-line py-4" aria-label={`Worked with ${COLLAB_NAMES.join(', ')}`}>
+    <div class="marquee" aria-hidden="true">
+      {
+        names.map((n) => (
+          <span class="display flex shrink-0 items-center px-5 text-3xl whitespace-nowrap sm:text-4xl">
+            {n}
+            <span class="accent-text ml-10 text-xl">✦</span>
+          </span>
+        ))
+      }
+    </div>
+  </div>
+</section>

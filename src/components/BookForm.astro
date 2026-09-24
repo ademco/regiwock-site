@@ -1,0 +1,129 @@
+---
+import { WEB3FORMS_ACCESS_KEY, INQUIRY_TYPES, BUDGETS, EMAIL } from '../config';
+const connected = !WEB3FORMS_ACCESS_KEY.startsWith('YOUR_');
+---
+
+<section id="book" class="inverse px-4 py-20 sm:px-8 sm:py-28" aria-labelledby="book-title">
+  <div class="grid gap-12 lg:grid-cols-12">
+    <div class="lg:col-span-5" data-reveal>
+      <p class="label mb-3 text-muted">[07] Let’s work</p>
+      <h2 id="book-title" class="display mb-6 text-7xl sm:text-8xl">Book me<span class="accent-text">.</span></h2>
+      <p class="max-w-sm text-lg leading-snug text-muted">
+        Brand deals, stream production, collabs. Tell me what you’ve got and I’ll get back to you.
+      </p>
+      <p class="label mt-8 text-muted">
+        Or email <a href={`mailto:${EMAIL}`} class="underline decoration-1 underline-offset-4 hover:text-ink">{EMAIL}</a>
+      </p>
+    </div>
+
+    <form
+      id="book-form"
+      class="grid gap-8 lg:col-span-7"
+      data-connected={connected ? 'true' : 'false'}
+      data-email={EMAIL}
+      novalidate
+      data-reveal
+    >
+      <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+      <input type="hidden" name="from_name" value="regiwock.com" />
+      <input type="checkbox" name="botcheck" class="hidden" tabindex="-1" autocomplete="off" />
+
+      <fieldset>
+        <legend class="label mb-3 text-muted">What’s this for? *</legend>
+        <div class="flex flex-wrap gap-2">
+          {
+            INQUIRY_TYPES.map((t, i) => (
+              <label class="relative cursor-pointer">
+                <input class="chip-input" type="radio" name="inquiry_type" value={t} required checked={i === 0} />
+                <span class="label flex h-11 items-center border border-line px-4 transition-colors hover:border-ink">{t}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <div class="grid gap-8 sm:grid-cols-2">
+        <label class="block">
+          <span class="label text-muted">Name *</span>
+          <input class="field" type="text" name="name" autocomplete="name" required placeholder="Your name" />
+        </label>
+        <label class="block">
+          <span class="label text-muted">Email *</span>
+          <input class="field" type="email" name="email" autocomplete="email" required placeholder="you@brand.com" />
+        </label>
+        <label class="block">
+          <span class="label text-muted">Budget</span>
+          <select class="field" name="budget">
+            <option value="">Pick a range</option>
+            {BUDGETS.map((b) => <option value={b}>{b}</option>)}
+          </select>
+        </label>
+        <label class="block">
+          <span class="label text-muted">Date</span>
+          <input class="field" type="date" name="date" />
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="label text-muted">Message *</span>
+        <textarea class="field min-h-32 resize-y" name="message" required placeholder="The idea, the platform, the timeline…"></textarea>
+      </label>
+
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <button type="submit" class="btn btn-accent btn-lg">
+          <span data-label>Send it</span> <span class="arrow">→</span>
+        </button>
+        <p id="book-status" class="label min-h-5" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  const form = document.getElementById('book-form') as HTMLFormElement;
+  const status = document.getElementById('book-status')!;
+  const label = form.querySelector<HTMLElement>('[data-label]')!;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+
+    const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    if (data.botcheck) return;
+    data.subject = `Booking inquiry — ${data.inquiry_type} — ${data.name}`;
+
+    // Not wired to Web3Forms yet: fall back to a prefilled email.
+    if (form.dataset.connected !== 'true') {
+      const body = [
+        `Name: ${data.name}`,
+        `Email: ${data.email}`,
+        `Inquiry: ${data.inquiry_type}`,
+        `Budget: ${data.budget || '—'}`,
+        `Date: ${data.date || '—'}`,
+        '',
+        data.message,
+      ].join('\n');
+      location.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(body)}`;
+      status.textContent = 'Opening your email app…';
+      return;
+    }
+
+    label.textContent = 'Sending…';
+    status.textContent = '';
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message || 'Failed');
+      form.reset();
+      label.textContent = 'Sent ✓';
+      status.textContent = 'Got it — I’ll hit you back soon.';
+    } catch {
+      label.textContent = 'Send it';
+      status.textContent = `Didn’t go through. Email ${form.dataset.email} instead.`;
+    }
+  });
+</script>

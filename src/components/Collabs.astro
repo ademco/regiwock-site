@@ -1,0 +1,33 @@
+---
+import SectionHead from './SectionHead.astro';
+import Media from './Media.astro';
+import { COLLABS } from '../config';
+import { resolveMedia } from '../lib/work';
+
+const collabs = await Promise.all(COLLABS.map(async (c) => ({ ...c, media: await resolveMedia(c.url) })));
+---
+
+<section id="collabs" class="px-4 py-20 sm:px-8 sm:py-28" aria-labelledby="collabs-title">
+  <SectionHead id="collabs-title" index="04" title="Collabs" kicker="Behind the camera and on it" />
+
+  <ol class="flex flex-col gap-16 sm:gap-24">
+    {
+      collabs.map((c, i) => (
+        <li class="grid items-center gap-6 lg:grid-cols-12 lg:gap-10" data-reveal>
+          <div class:list={['lg:col-span-7', i % 2 === 1 && 'lg:order-2']}>
+            <Media media={c.media} title={c.name} />
+          </div>
+          <div class="lg:col-span-5">
+            <p class="label mb-4 flex items-center gap-3 text-muted">
+              <span class="accent-text">{String(i + 1).padStart(2, '0')}</span>
+              <span class="h-px w-10 bg-line" />
+              {c.roles.join(' · ')}
+            </p>
+            <h3 class="display mb-4 text-5xl sm:text-7xl">{c.name}</h3>
+            <p class="max-w-md text-lg leading-snug text-muted">{c.line}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>

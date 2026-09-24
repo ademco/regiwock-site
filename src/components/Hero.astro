@@ -1,0 +1,115 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { PROFILE } from '../config';
+
+// Drop public/reel.mp4 + public/reel-poster.jpg into the repo and the hero
+// becomes a muted looping video automatically. Until then: type-driven hero.
+const pub = path.join(process.cwd(), 'public');
+const hasReel = fs.existsSync(path.join(pub, 'reel.mp4')) && fs.existsSync(path.join(pub, 'reel-poster.jpg'));
+
+const chars = [...PROFILE.wordmark];
+// Last two words of the pitch get the accent treatment
+const words = PROFILE.pitch.split(' ');
+const pitchLead = words.slice(0, -2).join(' ');
+const pitchTail = words.slice(-2).join(' ');
+---
+
+<section
+  id="top"
+  class:list={['relative isolate flex min-h-svh flex-col overflow-hidden pt-16', hasReel && 'text-white']}
+  aria-label="Intro"
+>
+  {
+    hasReel ? (
+      <div class="absolute inset-0 -z-10">
+        <video
+          id="reel"
+          class="h-full w-full object-cover"
+          src="/reel.mp4"
+          poster="/reel-poster.jpg"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          aria-hidden="true"
+        />
+        <div class="absolute inset-0 bg-linear-to-b from-black/40 via-black/20 to-black/75" />
+      </div>
+    ) : (
+      <div class="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        <div class="blob top-[18%] left-[-10%] h-[45vmax] w-[45vmax]" />
+        <div class="blob right-[-15%] bottom-[-10%] h-[35vmax] w-[35vmax] [animation-delay:-9s]" />
+        <div
+          class="absolute inset-0 opacity-40 [background-image:linear-gradient(var(--line)_1px,transparent_1px),linear-gradient(90deg,var(--line)_1px,transparent_1px)] [background-size:calc(100%/6)_calc(100%/6)]"
+        />
+      </div>
+    )
+  }
+
+  <!-- Viewfinder overlay: the camera-operator motif -->
+  <div class="pointer-events-none absolute inset-x-3 top-19 bottom-3 sm:inset-x-5 sm:bottom-5" aria-hidden="true">
+    <div class="vf"><i></i><i></i><i></i><i></i></div>
+    <div class="label absolute top-4 left-5 flex items-center gap-2 sm:top-5 sm:left-7">
+      <span class="rec-dot"></span> Rec
+    </div>
+    <div class="label absolute top-4 right-5 tabular-nums sm:top-5 sm:right-7" id="tc">00:00:00:00</div>
+    <div class="label absolute bottom-4 left-5 hidden sm:bottom-5 sm:left-7 sm:block">Cam A — Regi</div>
+    <div class="label absolute right-5 bottom-4 hidden sm:right-7 sm:bottom-5 sm:block">4K · 60 · Live</div>
+  </div>
+
+  <div class="relative flex flex-1 flex-col justify-end px-4 pt-20 pb-12 sm:px-8 sm:pb-16">
+    <p class="label mb-4 flex flex-wrap gap-x-3 gap-y-1 opacity-80">
+      {
+        PROFILE.roles.map((r, i) => (
+          <span>
+            {i > 0 && <span class="mr-3 opacity-50">/</span>}
+            {r}
+          </span>
+        ))
+      }
+    </p>
+
+    <h1 class="boil display -mb-[0.14em] -ml-[0.04em] overflow-hidden pb-[0.2em] text-(length:--wm-size) whitespace-nowrap">
+      <span class="sr-only">{PROFILE.wordmark}</span>
+      <span aria-hidden="true">
+        {chars.map((ch, i) => <span class="char" style={`--i:${i}`}>{ch}</span>)}
+      </span>
+    </h1>
+
+    <div class="mt-6 flex flex-col gap-6 sm:mt-8 sm:flex-row sm:items-end sm:justify-between">
+      <p class="max-w-xl text-2xl leading-tight font-medium tracking-tight sm:text-4xl" data-reveal style="--d:500ms">
+        {pitchLead} <span class="accent-text display">{pitchTail}</span>
+      </p>
+      <div class="flex flex-wrap gap-3" data-reveal style="--d:650ms">
+        <a href="#book" class="btn btn-accent btn-lg">Book me <span class="arrow">→</span></a>
+        <a href="#work" class:list={['btn btn-lg', hasReel && 'border-white hover:bg-white hover:text-black']}>See the work</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Running timecode, like a camera monitor
+  const tc = document.getElementById('tc');
+  if (tc) {
+    const t0 = performance.now();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    let last = -1;
+    const tick = (now: number) => {
+      const f = Math.floor(((now - t0) / 1000) * 30);
+      if (f !== last) {
+        last = f;
+        const s = Math.floor(f / 30);
+        tc.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}:${pad(f % 30)}`;
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // Respect reduced motion for the reel
+  const reel = document.getElementById('reel') as HTMLVideoElement | null;
+  if (reel && matchMedia('(prefers-reduced-motion: reduce)').matches) reel.pause();
+</script>

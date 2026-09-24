@@ -1,0 +1,84 @@
+---
+import { PROFILE, VIBES } from '../config';
+
+const links = [
+  { href: '#work', label: 'Work' },
+  { href: '#collabs', label: 'Collabs' },
+  { href: '#services', label: 'Services' },
+  { href: '#about', label: 'About' },
+];
+---
+
+<header class="fixed inset-x-0 top-0 z-50">
+  <nav
+    class="mx-auto flex h-16 items-center justify-between gap-3 border-b border-line bg-bg/80 px-4 backdrop-blur-md sm:px-6"
+    aria-label="Main"
+  >
+    <a href="#top" class="display shrink-0 text-xl leading-none sm:text-2xl" aria-label={`${PROFILE.wordmark} — back to top`}>
+      {PROFILE.wordmark}<span class="accent-text">.</span>
+    </a>
+
+    <ul class="hidden items-center gap-6 md:flex">
+      {
+        links.map((l) => (
+          <li>
+            <a href={l.href} class="label text-muted transition-colors hover:text-ink">
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="flex items-center gap-1 sm:gap-2">
+      <button
+        id="vibe"
+        type="button"
+        class="label flex h-11 items-center gap-2 px-2 text-muted transition-colors hover:text-ink"
+        aria-label="Switch the site's look"
+        title="Switch vibe"
+      >
+        <svg viewBox="0 0 16 16" class="h-3.5 w-3.5" aria-hidden="true"
+          ><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path
+            d="M8 1a7 7 0 0 1 0 14z"
+            fill="currentColor"></path></svg
+        >
+        <span class="hidden sm:inline">Vibe</span>
+        <span id="vibe-name" class="text-ink">cream</span>
+      </button>
+      <a href="#book" class="btn btn-accent px-3 sm:px-[1.15rem]">Book me <span class="arrow">→</span></a>
+    </div>
+  </nav>
+</header>
+
+<script define:vars={{ VIBES }}>
+  const THEME = { cream: '#ece7dd', concrete: '#c7c7c2', night: '#0a0a0a', prism: '#f6f6f3' };
+  const d = document.documentElement;
+  const btn = document.getElementById('vibe');
+  const name = document.getElementById('vibe-name');
+  const meta = document.querySelector('meta[name="theme-color"]');
+
+  const paint = (v) => {
+    name.textContent = v;
+    meta?.setAttribute('content', THEME[v]);
+  };
+  paint(d.dataset.vibe);
+
+  btn.addEventListener('click', (e) => {
+    const next = VIBES[(VIBES.indexOf(d.dataset.vibe) + 1) % VIBES.length];
+    const apply = () => {
+      d.dataset.vibe = next;
+      paint(next);
+      try {
+        localStorage.setItem('vibe', next);
+      } catch {}
+    };
+    // Wipe the new vibe in from the button
+    const r = btn.getBoundingClientRect();
+    d.style.setProperty('--vx', `${r.left + r.width / 2}px`);
+    d.style.setProperty('--vy', `${r.top + r.height / 2}px`);
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (document.startViewTransition && !reduce) document.startViewTransition(apply);
+    else apply();
+  });
+</script>

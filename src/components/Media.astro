@@ -1,0 +1,60 @@
+---
+// Lightweight click-to-load player. Shows a thumbnail (or a typographic tile when a
+// platform has no public thumbnail); the real iframe only loads when tapped.
+import type { Media } from '../lib/work';
+
+interface Props {
+  media: Media;
+  title: string;
+  eager?: boolean;
+}
+const { media, title, eager = false } = Astro.props;
+const Tag = media.embed ? 'button' : 'a';
+const attrs = media.embed
+  ? { type: 'button', 'data-embed': media.embed, 'aria-label': `Play ${title} (${media.platformLabel})` }
+  : { href: media.url, target: '_blank', rel: 'noopener', 'aria-label': `Open ${title} on ${media.platformLabel}` };
+---
+
+<div class="group relative aspect-video w-full overflow-hidden bg-bg-2">
+  <Tag {...attrs} class="absolute inset-0 block h-full w-full cursor-pointer text-left">
+    <!-- Typographic tile: shown when there's no thumbnail, or if the thumbnail fails to load -->
+    <div class="absolute inset-0 flex flex-col justify-between p-4 sm:p-5">
+      <div class="absolute inset-0 opacity-50 [background-image:repeating-linear-gradient(90deg,var(--line)_0_1px,transparent_1px_calc(100%/8))]" />
+      <span class="label relative text-muted">{media.platformLabel}</span>
+      <span class="display relative pr-20 text-4xl sm:text-5xl">{title}</span>
+    </div>
+    {
+      media.thumbnail && (
+        <img
+          src={media.thumbnail}
+          alt=""
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          referrerpolicy="no-referrer"
+          onerror="this.remove()"
+          class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+        />
+      )
+    }
+
+    <span class="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/15" />
+    <span class="vf vf-hover text-white mix-blend-difference" aria-hidden="true"><i /><i /><i /><i /></span>
+
+    <span
+      class="label absolute right-3 bottom-3 flex items-center gap-2 bg-(--ink) px-2.5 py-1.5 text-(--bg) transition-transform duration-300 group-hover:-translate-y-0.5"
+    >
+      {
+        media.embed ? (
+          <>
+            <svg viewBox="0 0 10 10" class="h-2.5 w-2.5" aria-hidden="true">
+              <path d="M1 0l9 5-9 5z" fill="currentColor" />
+            </svg>
+            Play
+          </>
+        ) : (
+          <>Open ↗</>
+        )
+      }
+    </span>
+  </Tag>
+</div>

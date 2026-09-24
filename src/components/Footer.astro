@@ -1,0 +1,42 @@
+---
+import { SOCIALS, EMAIL, PROFILE } from '../config';
+const year = new Date().getFullYear();
+---
+
+<footer class="px-4 pt-20 pb-8 sm:px-8">
+  <div class="grid gap-12 border-t border-line pt-8 md:grid-cols-12">
+    <div class="md:col-span-5">
+      <p class="label mb-4 text-muted">Everywhere as @regiwock</p>
+      <a href="#book" class="btn btn-accent btn-lg">Book me <span class="arrow">→</span></a>
+      <p class="label mt-6 text-muted">
+        <a href={`mailto:${EMAIL}`} class="hover:text-ink">{EMAIL}</a>
+      </p>
+    </div>
+    <ul class="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3 md:col-span-7">
+      {
+        SOCIALS.map((s) => (
+          <li>
+            <a
+              href={s.url}
+              target="_blank"
+              rel="me noopener"
+              class="group flex items-center justify-between border-b border-line py-3 text-lg transition-colors hover:text-accent"
+            >
+              {s.name}
+              <span class="label text-muted transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <p class="boil display mt-16 -mb-[0.14em] -ml-[0.04em] overflow-hidden pb-[0.2em] text-(length:--wm-size) whitespace-nowrap" aria-hidden="true">
+    {PROFILE.wordmark}
+  </p>
+
+  <div class="label mt-6 flex flex-col justify-between gap-2 text-muted sm:flex-row">
+    <span>© {year} {PROFILE.name} / @{PROFILE.handle}</span>
+    <span>Built and deployed by Regi — Astro on Cloudflare</span>
+  </div>
+</footer>

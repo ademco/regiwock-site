@@ -1,0 +1,127 @@
+---
+import '../styles/global.css';
+import { PROFILE, SITE_URL, DOMAIN_CONNECTED, SOCIALS, VIBES, DEFAULT_VIBE } from '../config';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = `${PROFILE.wordmark} — ${PROFILE.pitch}`, description = PROFILE.description } = Astro.props;
+
+// Share images must be absolute URLs. Until regiwock.com points here, use the
+// Cloudflare deployment URL (set automatically during Cloudflare Pages builds).
+const assetOrigin = (DOMAIN_CONNECTED ? SITE_URL : process.env.CF_PAGES_URL || SITE_URL).replace(/\/$/, '');
+const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+const ogImage = `${assetOrigin}/og.png`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: PROFILE.name,
+  alternateName: `@${PROFILE.handle}`,
+  url: SITE_URL,
+  jobTitle: 'Artist, creator and stream producer',
+  sameAs: SOCIALS.map((s) => s.url),
+};
+---
+
+<!doctype html>
+<html lang="en" data-vibe={DEFAULT_VIBE}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#ece7dd" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={PROFILE.wordmark} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${PROFILE.wordmark} — ${PROFILE.pitch} Book me.`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content={`@${PROFILE.handle}`} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- Apply the saved vibe before first paint so there's no flash -->
+    <script is:inline define:vars={{ VIBES, DEFAULT_VIBE }}>
+      const d = document.documentElement;
+      d.classList.add('js');
+      let v = DEFAULT_VIBE;
+      try {
+        const saved = localStorage.getItem('vibe');
+        if (VIBES.includes(saved)) v = saved;
+      } catch {}
+      d.dataset.vibe = v;
+    </script>
+  </head>
+  <body class="min-h-svh antialiased">
+    <!-- Stop-motion "boil": displacement noise re-seeded ~8 times a second -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <filter id="boil" x="-5%" y="-10%" width="110%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="1" result="noise">
+          <animate attributeName="seed" values="1;7;3;9;5" dur="0.62s" calcMode="discrete" repeatCount="indefinite" />
+        </feTurbulence>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </svg>
+
+    <slot />
+
+    <script>
+      // Scroll reveal
+      const els = document.querySelectorAll('[data-reveal]');
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('in');
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+        );
+        els.forEach((el) => io.observe(el));
+      } else {
+        els.forEach((el) => el.classList.add('in'));
+      }
+
+      // Click-to-load embeds: nothing third-party loads until someone taps play
+      document.addEventListener('click', (ev) => {
+        const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-embed]');
+        if (!btn) return;
+        const src = btn.dataset.embed!.replaceAll('{parent}', location.hostname);
+        const frame = document.createElement('iframe');
+        frame.src = src;
+        frame.title = btn.getAttribute('aria-label') || 'Embedded player';
+        frame.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write';
+        frame.allowFullscreen = true;
+        frame.className = 'absolute inset-0 h-full w-full border-0';
+        btn.replaceWith(frame);
+      });
+
+      // Preselect inquiry type from any "Book this" link
+      document.addEventListener('click', (ev) => {
+        const link = (ev.target as HTMLElement).closest<HTMLElement>('[data-inquiry]');
+        if (!link) return;
+        const radio = document.querySelector<HTMLInputElement>(`input[name="inquiry_type"][value="${link.dataset.inquiry}"]`);
+        if (radio) radio.checked = true;
+      });
+    </script>
+  </body>
+</html>
