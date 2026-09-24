@@ -19,7 +19,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 ### 2.1 Style guide: 3 directions
 - **Goal:** Regi picks the look by comparing options side by side instead of reacting to finished pages.
 - **Done when:** a `/styleguide` page shows 3 distinct directions side by side, each with color palette, type scale (display + body + label), buttons (primary/secondary, hover), and a sample card. It must work on a phone. Regi picks one (or a mix).
-- **Status:** todo
+- **Status:** in progress (round 1 of 3: Notebook / Stark / Broadcast on `/styleguide`)
 
 ### 2.2 Design tokens
 - **Goal:** the chosen direction becomes the single source of truth for color, type, spacing, radius and motion.
