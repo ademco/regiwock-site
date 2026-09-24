@@ -28,7 +28,9 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 ### 2.2 Design tokens
 - **Goal:** the chosen direction becomes the single source of truth for color, type, spacing, radius and motion.
 - **Done when:** tokens live in one place (CSS variables mapped into Tailwind), `/styleguide` shows the final tokens, no hardcoded colors or fonts remain in components, and the build passes.
-- **Status:** todo
+- **Status:** in progress
+- **Kickoff → Regi:** round 3 of 2.1 "feels a little too polished/AI". Wants it old school and rugged, like you're actually on a camera's preview screen and flipping through it, with the SD card / gallery holding past streams and content. Said to pick the most seamless path, so the look fix happens here (the final tokens) instead of reopening 2.1. Started YouTube April 2009, born July 1999 (the 1999 in the pitch).
+- **Round 1:** `/styleguide` becomes a real camera LCD. Bitmap type everywhere (VT323 for readouts and body, Silkscreen for the headline), on-screen text with a hard black outline, RGB pixel grid + grain + corner falloff over everything, rubber gray camera buttons, AF box that hunts and locks green once the stream is really playing, the visitor's real battery (where the browser shares it), INFO button flips to a clean view. MENU is a Canon-style menu (colored tabs, amber select bar, help box that shows the collab one-liners). ▶ SD [09] is SD-card playback: file numbers `100-0003`, names like `MVI_0003.MOV` / `SND_0001.WAV`, ◀ ▶ / swipe, SET to put a stream on screen or open it, ⊞ for a 3×3 index of thumbnails. All colors and fonts are tokens in one `:root` block; the Specs tab reads them back. Doto/Geist are gone. Wiring the tokens into `global.css` and the rest of the site happens once Regi approves the look.
 
 ---
 

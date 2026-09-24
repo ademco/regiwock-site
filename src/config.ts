@@ -33,7 +33,8 @@ export const PROFILE = {
  * FOLLOWERS is a placeholder until Regi sends real counts (live counts are in ROADMAP IDEAS).
  */
 export const STATS = {
-  creatingSince: 2009,
+  /** Regi started YouTube in April 2009 (born July 1999 — that's the 1999 in the pitch). */
+  creatingSince: 'Apr 2009',
   monthlyListeners: '20K',
   followers: '50K',
 };
