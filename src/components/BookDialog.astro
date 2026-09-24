@@ -1,0 +1,131 @@
+---
+// "Book me" sheet. Opens from any link to #book (on every page) or when the URL ends in #book.
+import { WEB3FORMS_ACCESS_KEY, INQUIRY_TYPES, BUDGETS, EMAIL } from '../config';
+const connected = !WEB3FORMS_ACCESS_KEY.startsWith('YOUR_');
+---
+
+<dialog id="book" class="sheet" aria-labelledby="book-title">
+  <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-6">
+    <div class="sheet-page relative w-full max-w-xl bg-bg px-5 pt-6 pb-8 shadow-[0_-8px_40px_rgb(0_0_0/0.12)] sm:px-8 sm:pt-8 sm:shadow-[6px_6px_0_var(--ink)] sm:outline sm:outline-[1.5px] sm:outline-ink">
+      <button type="button" data-close class="label absolute top-3 right-3 flex h-11 w-11 items-center justify-center" aria-label="Close">✕</button>
+
+      <p class="hand mb-1 text-2xl text-muted">let’s make something —</p>
+      <h2 id="book-title" class="display mb-6 text-5xl sm:text-6xl">Book me<span class="accent-text">.</span></h2>
+
+      <form id="book-form" class="grid gap-6" data-connected={connected ? 'true' : 'false'} data-email={EMAIL} novalidate>
+        <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+        <input type="hidden" name="from_name" value="regiwock site" />
+        <input type="checkbox" name="botcheck" class="hidden" tabindex="-1" autocomplete="off" />
+
+        <fieldset>
+          <legend class="label mb-3 text-muted">What’s this for? *</legend>
+          <div class="flex flex-wrap gap-2">
+            {
+              INQUIRY_TYPES.map((t, i) => (
+                <label class="relative cursor-pointer">
+                  <input class="chip-input" type="radio" name="inquiry_type" value={t} required checked={i === 0} />
+                  <span class="label flex h-10 items-center border-[1.5px] border-line px-3.5 transition-colors hover:border-ink">{t}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <div class="grid gap-6 sm:grid-cols-2">
+          <label class="block">
+            <span class="label text-muted">Name *</span>
+            <input class="field" type="text" name="name" autocomplete="name" required placeholder="Your name" />
+          </label>
+          <label class="block">
+            <span class="label text-muted">Email *</span>
+            <input class="field" type="email" name="email" autocomplete="email" required placeholder="you@brand.com" />
+          </label>
+          <label class="block">
+            <span class="label text-muted">Budget</span>
+            <select class="field" name="budget">
+              <option value="">Pick a range</option>
+              {BUDGETS.map((b) => <option value={b}>{b}</option>)}
+            </select>
+          </label>
+          <label class="block">
+            <span class="label text-muted">Date</span>
+            <input class="field" type="date" name="date" />
+          </label>
+        </div>
+
+        <label class="block">
+          <span class="label text-muted">Message *</span>
+          <textarea class="field min-h-24 resize-y" name="message" required placeholder="The idea, the platform, the timeline…"></textarea>
+        </label>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <button type="submit" class="btn btn-accent btn-lg"><span data-label>Send it</span> <span class="arrow">→</span></button>
+          <p class="label text-muted">or <a href={`mailto:${EMAIL}`} class="underline underline-offset-4 hover:text-ink">{EMAIL}</a></p>
+        </div>
+        <p id="book-status" class="hand min-h-7 text-2xl" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.getElementById('book') as HTMLDialogElement;
+  const form = document.getElementById('book-form') as HTMLFormElement;
+  const status = document.getElementById('book-status')!;
+  const label = form.querySelector<HTMLElement>('[data-label]')!;
+
+  const open = () => {
+    if (!dialog.open) dialog.showModal();
+  };
+  const close = () => {
+    dialog.close();
+    if (location.hash === '#book') history.replaceState(null, '', location.pathname + location.search);
+  };
+
+  // Any link to #book (or /#book) opens the sheet instead of jumping
+  document.addEventListener('click', (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href$="#book"]');
+    if (!a || new URL(a.href).pathname !== location.pathname) return;
+    e.preventDefault();
+    open();
+  });
+  if (location.hash === '#book') open();
+  dialog.querySelector('[data-close]')!.addEventListener('click', close);
+  dialog.addEventListener('click', (e) => {
+    // click on the dimmed backdrop area closes
+    if (!(e.target as HTMLElement).closest('.sheet-page')) close();
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+
+    const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    if (data.botcheck) return;
+    data.subject = `Booking inquiry — ${data.inquiry_type} — ${data.name}`;
+
+    if (form.dataset.connected !== 'true') {
+      const body = [`Name: ${data.name}`, `Email: ${data.email}`, `Inquiry: ${data.inquiry_type}`, `Budget: ${data.budget || '—'}`, `Date: ${data.date || '—'}`, '', data.message].join('\n');
+      location.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(body)}`;
+      return;
+    }
+
+    label.textContent = 'Sending…';
+    status.textContent = '';
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message || 'Failed');
+      form.reset();
+      label.textContent = 'Sent ✓';
+      status.textContent = 'got it — I’ll hit you back soon.';
+    } catch {
+      label.textContent = 'Send it';
+      status.textContent = `didn’t go through — email ${form.dataset.email}`;
+    }
+  });
+</script>

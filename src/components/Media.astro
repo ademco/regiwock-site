@@ -21,7 +21,7 @@ const attrs = media.embed
     <div class="absolute inset-0 flex flex-col justify-between p-4 sm:p-5">
       <div class="absolute inset-0 opacity-50 [background-image:repeating-linear-gradient(90deg,var(--line)_0_1px,transparent_1px_calc(100%/8))]" />
       <span class="label relative text-muted">{media.platformLabel}</span>
-      <span class="display relative pr-20 text-4xl sm:text-5xl">{title}</span>
+      <span class="display relative pr-20 text-2xl sm:text-3xl">{title}</span>
     </div>
     {
       media.thumbnail && (
@@ -38,7 +38,7 @@ const attrs = media.embed
     }
 
     <span class="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/15" />
-    <span class="vf vf-hover text-white mix-blend-difference" aria-hidden="true"><i /><i /><i /><i /></span>
+    <span class="vf text-white mix-blend-difference" aria-hidden="true"><i /><i /><i /><i /></span>
 
     <span
       class="label absolute right-3 bottom-3 flex items-center gap-2 bg-(--ink) px-2.5 py-1.5 text-(--bg) transition-transform duration-300 group-hover:-translate-y-0.5"

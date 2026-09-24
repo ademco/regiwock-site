@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
-import { PROFILE, SITE_URL, DOMAIN_CONNECTED, DEPLOY_URL, SOCIALS, VIBES, DEFAULT_VIBE } from '../config';
+import BookDialog from '../components/BookDialog.astro';
+import { PROFILE, SITE_URL, DOMAIN_CONNECTED, DEPLOY_URL, SOCIALS } from '../config';
 
 interface Props {
   title?: string;
@@ -12,7 +13,9 @@ const { title = `${PROFILE.wordmark} — ${PROFILE.pitch}`, description = PROFIL
 // Share images must be absolute URLs. Until regiwock.com points here, use the
 // Cloudflare URL (DEPLOY_URL, or CF_PAGES_URL which Pages builds set automatically).
 const assetOrigin = (DOMAIN_CONNECTED ? SITE_URL : DEPLOY_URL || process.env.CF_PAGES_URL || SITE_URL).replace(/\/$/, '');
-const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+// Canonical/og:url point at wherever the site actually lives right now.
+const liveOrigin = DOMAIN_CONNECTED ? SITE_URL : DEPLOY_URL || SITE_URL;
+const canonical = new URL(Astro.url.pathname, liveOrigin).href;
 const ogImage = `${assetOrigin}/og.png`;
 
 const jsonLd = {
@@ -27,14 +30,14 @@ const jsonLd = {
 ---
 
 <!doctype html>
-<html lang="en" data-vibe={DEFAULT_VIBE}>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <meta name="theme-color" content="#ece7dd" />
+    <meta name="theme-color" content="#fbfaf6" />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -56,30 +59,11 @@ const jsonLd = {
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    <!-- Apply the saved vibe before first paint so there's no flash -->
-    <script is:inline define:vars={{ VIBES, DEFAULT_VIBE }}>
-      const d = document.documentElement;
-      d.classList.add('js');
-      let v = DEFAULT_VIBE;
-      try {
-        const saved = localStorage.getItem('vibe');
-        if (VIBES.includes(saved)) v = saved;
-      } catch {}
-      d.dataset.vibe = v;
-    </script>
+    <script is:inline>document.documentElement.classList.add('js');</script>
   </head>
   <body class="min-h-svh antialiased">
-    <!-- Stop-motion "boil": displacement noise re-seeded ~8 times a second -->
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-      <filter id="boil" x="-5%" y="-10%" width="110%" height="120%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="1" result="noise">
-          <animate attributeName="seed" values="1;7;3;9;5" dur="0.62s" calcMode="discrete" repeatCount="indefinite" />
-        </feTurbulence>
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-    </svg>
-
     <slot />
+    <BookDialog />
 
     <script>
       // Scroll reveal
@@ -115,13 +99,6 @@ const jsonLd = {
         btn.replaceWith(frame);
       });
 
-      // Preselect inquiry type from any "Book this" link
-      document.addEventListener('click', (ev) => {
-        const link = (ev.target as HTMLElement).closest<HTMLElement>('[data-inquiry]');
-        if (!link) return;
-        const radio = document.querySelector<HTMLInputElement>(`input[name="inquiry_type"][value="${link.dataset.inquiry}"]`);
-        if (radio) radio.checked = true;
-      });
     </script>
   </body>
 </html>
