@@ -1,5 +1,5 @@
 // Cloudflare Workers deploy config (static site: serve the Astro build output).
-// Cloudflare runs `npm run build`, then `npx wrangler deploy`.
+// Cloudflare runs `npm run build`, then `npx wrangler deploy` (main) or `npx wrangler preview` (other branches).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "regiwock-site",
@@ -7,5 +7,7 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"
-  }
+  },
+  // Required for branch preview links (`wrangler preview`); empty = same settings as production.
+  "previews": {}
 }

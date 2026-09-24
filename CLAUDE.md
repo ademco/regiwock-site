@@ -23,7 +23,7 @@ We build the site **section by section** from `ROADMAP.md`. Current state of the
 ## Stack
 
 - Astro 7 (static output) + Tailwind CSS v4 (via `@tailwindcss/vite`, config lives in CSS)
-- Deploy: Cloudflare **Workers** static assets (created via dashboard "Create an app" → GitHub). Build `npm run build`, deploy `npx wrangler deploy` using `wrangler.jsonc` (serves `dist/`). Production branch = `main`, so changes go live only after merging. Node from `.node-version` (22)
+- Deploy: Cloudflare **Workers** static assets (created via dashboard "Create an app" → GitHub). Build `npm run build`, deploy `npx wrangler deploy` using `wrangler.jsonc` (serves `dist/`). Non-main branches run `npx wrangler preview`, which needs the (empty) `"previews": {}` block in `wrangler.jsonc` — don't remove it or preview links break. Production branch = `main`, so changes go live only after merging. Node from `.node-version` (22)
 - Fonts self-hosted via `@fontsource/*` (latin subset only): Unbounded 800 (display), Inter Tight (body), JetBrains Mono (labels), Caveat (handwritten notes)
 - `roughjs` draws the pencil sketches at build time (`src/lib/sketch.ts`)
 - `satori` + `sharp` render `/og.png` and `/apple-touch-icon.png` at build time
