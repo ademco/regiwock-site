@@ -2,7 +2,7 @@
 // Work items (the grid) live in src/content/work/ and are managed with `npm run new`.
 
 /** Web3Forms access key. Get a free one at https://web3forms.com (it's safe to be public). */
-export const WEB3FORMS_ACCESS_KEY = 'YOUR_WEB3FORMS_ACCESS_KEY';
+export const WEB3FORMS_ACCESS_KEY = 'a3fde8b3-5c2d-4e1d-b84e-af1c86f41384';
 
 /** Canonical URL of the live site. */
 export const SITE_URL = 'https://regiwock.com';
@@ -32,7 +32,7 @@ export const STATS = [
 ];
 
 /** Shown in the proof bar marquee. */
-export const COLLAB_NAMES = ['Ye', 'Digital Nas', 'AssPizza', 'Austin Babbitt', 'Ac7ionMan', 'Blame'];
+export const COLLAB_NAMES = ['Ye', 'Digital Nas', 'AssPizza', 'Ac7ionMan', 'Blame'];
 
 /** Top 3 collabs, each with a clip and what Regi did. */
 export const COLLABS = [
@@ -45,8 +45,8 @@ export const COLLABS = [
   {
     name: 'AssPizza',
     url: 'https://www.youtube.com/live/0U6PonEWW3A',
-    roles: ['Collab stream'],
-    line: 'Collab stream on one of the only streams AssPizza has ever run on his YouTube channel.',
+    roles: ['Streamsnipe', 'IRL collab'],
+    line: 'Streamsniped AssPizza, then pulled up to his warehouse — and ended up live on one of the only streams he’s ever run on his YouTube channel.',
   },
   {
     name: 'Ac7ionMan',

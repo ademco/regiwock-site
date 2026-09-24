@@ -1,6 +1,6 @@
 # regiwock-site
 
-Portfolio + booking site for **Regi (@regiwock)**: creator since 2009, independent artist (~20K monthly Spotify listeners), camera/stream-tech for Ye, Digital Nas, AssPizza, Ac7ionMan, Blame, Austin Babbitt, and a platform engineer. **Goal of every section: get visitors to "Book me"** (brand deals, stream production, collabs).
+Portfolio + booking site for **Regi (@regiwock)**: creator since 2009, independent artist (~20K monthly Spotify listeners), camera/stream-tech for Ye, Digital Nas, AssPizza (real name Austin Babbitt — list him once, as AssPizza), Ac7ionMan, Blame, and a platform engineer. **Goal of every section: get visitors to "Book me"** (brand deals, stream production, collabs).
 
 ## Working with Regi
 
@@ -50,7 +50,7 @@ Section labels are numbered `[03]`…`[07]`.
 
 - **Hero reel:** if **both** `public/reel.mp4` and `public/reel-poster.jpg` exist at build time, the hero becomes a muted looping background video automatically. Otherwise the type-driven placeholder (accent blobs + grid) shows. Keep the reel small (≤ ~8 MB, 1080p H.264, 10–20 s).
 - **Embeds** are click-to-load facades (`Media.astro` + handler in `Base.astro`) — no third-party iframes until tapped.
-- **Booking form:** Web3Forms (`WEB3FORMS_ACCESS_KEY` in `src/config.ts`). While the key is still the `YOUR_…` placeholder, submitting opens a prefilled email to `regiwock@gmail.com` instead. Honeypot field: `botcheck`.
+- **Booking form:** Web3Forms (`WEB3FORMS_ACCESS_KEY` in `src/config.ts`). The key is set. If it's ever reset to the `YOUR_…` placeholder, submitting opens a prefilled email to `regiwock@gmail.com` instead. Honeypot field: `botcheck`.
 
 ## Look & motion
 
@@ -74,9 +74,8 @@ Section labels are numbered `[03]`…`[07]`.
 
 ## Open items
 
-- Web3Forms access key not set yet (Regi signs up at web3forms.com with regiwock@gmail.com, then Claude pastes the key into `src/config.ts`).
-- Reel not uploaded yet (`public/reel.mp4` + `public/reel-poster.jpg`).
-- Confirm the AssPizza vs Austin Babbitt clip: Regi sent `youtube.com/live/0U6PonEWW3A` for both.
+- No reel exists (optional; the type-driven hero is the design unless Regi makes one).
+- Top track is in the grid with a placeholder title ("Most-played track") — rename when Regi gives the song name.
 - No posts or drops yet (those filters show a "Cooking." empty state). Music cards are profile links; swap in favourite tracks when Regi sends them.
 - Social URLs assume handle `regiwock` everywhere except TikTok (`regiwock_`).
 
