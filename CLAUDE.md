@@ -12,7 +12,7 @@ Portfolio + booking site for **Regi (@regiwock)**: creator since 2009, independe
 ## Stack
 
 - Astro 7 (static output) + Tailwind CSS v4 (via `@tailwindcss/vite`, config lives in CSS)
-- Deploy: Cloudflare Pages — build `npm run build`, output `dist`, Node from `.node-version` (22)
+- Deploy: Cloudflare **Workers** static assets (created via dashboard "Create an app" → GitHub). Build `npm run build`, deploy `npx wrangler deploy` using `wrangler.jsonc` (serves `dist/`). Production branch = `main`, so changes go live only after merging. Node from `.node-version` (22)
 - Fonts self-hosted via `@fontsource/*` (latin subset only)
 - `satori` + `sharp` render `/og.png` and `/apple-touch-icon.png` at build time
 - No UI framework; small inline `<script>`s only
@@ -70,7 +70,7 @@ Section labels are numbered `[03]`…`[07]`.
 ## SEO / sharing
 
 `Base.astro` sets title, description, canonical, Open Graph + Twitter tags, JSON-LD Person. `og:image` is `/og.png` (1200×630, rendered in `src/pages/og.png.ts`).
-`SITE_URL` = `https://regiwock.com`. **regiwock.com is still on Beacons.ai (expires Feb 2027)**, so `DOMAIN_CONNECTED = false` makes share images use Cloudflare's `CF_PAGES_URL`. After pointing the domain at Cloudflare Pages, set `DOMAIN_CONNECTED = true`.
+`SITE_URL` = `https://regiwock.com`. **regiwock.com is still on Beacons.ai (expires Feb 2027)**, so `DOMAIN_CONNECTED = false` makes share images use `DEPLOY_URL` (the live workers.dev URL — fill it in once known) or Pages' `CF_PAGES_URL`. After pointing the domain at Cloudflare Pages, set `DOMAIN_CONNECTED = true`.
 
 ## Open items
 

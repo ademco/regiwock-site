@@ -13,6 +13,9 @@ export const SITE_URL = 'https://regiwock.com';
  */
 export const DOMAIN_CONNECTED = false;
 
+/** Live Cloudflare URL (e.g. https://regiwock-site.<name>.workers.dev), used for share images until the domain is connected. */
+export const DEPLOY_URL = '';
+
 export const EMAIL = 'regiwock@gmail.com';
 
 export const PROFILE = {
