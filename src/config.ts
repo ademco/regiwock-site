@@ -28,6 +28,16 @@ export const PROFILE = {
     'Regi (@regiwock): independent artist, creator since 2009, and the camera + stream tech behind live sessions with Ye, Digital Nas, AssPizza and more. Book brand deals, stream production and collabs.',
 };
 
+/**
+ * Numbers shown as camera readouts on the viewfinder (/styleguide for now).
+ * FOLLOWERS is a placeholder until Regi sends real counts (live counts are in ROADMAP IDEAS).
+ */
+export const STATS = {
+  creatingSince: 2009,
+  monthlyListeners: '20K',
+  followers: '50K',
+};
+
 /** Shown in the proof bar marquee. */
 export const COLLAB_NAMES = ['Ye', 'Digital Nas', 'AssPizza', 'Ac7ionMan', 'Blame'];
 
