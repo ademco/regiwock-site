@@ -2,6 +2,17 @@
 
 Portfolio + booking site for **Regi (@regiwock)**: creator since 2009, independent artist (~20K monthly Spotify listeners), camera/stream-tech for Ye, Digital Nas, AssPizza (real name Austin Babbitt — list him once, as AssPizza), Ac7ionMan, Blame, and a platform engineer. **Goal of every section: get visitors to "Book me"** (brand deals, stream production, collabs).
 
+## WORKING RULES (read first, every session)
+
+We build the site **section by section** from `ROADMAP.md`. Current state of the site: `AUDIT.md`.
+
+- Each session works on **exactly one ROADMAP item**. Never touch `locked` items unless Regi asks.
+- Start every session by **restating the goal**, giving Regi **2–3 approaches**, and **asking questions**. No code until he chooses.
+- **Max 3 revision rounds** per item, then we lock it. New ideas go to the **IDEAS** section of `ROADMAP.md`, not into the current work.
+- Every change goes on **its own branch with a PR** so Regi can check the Cloudflare preview on his phone.
+- When Regi approves, mark the item `locked` in `ROADMAP.md` **in the same PR**.
+- **Never tell Regi to edit files by hand.**
+
 ## Working with Regi
 
 - Regi previews only through **Cloudflare Pages preview links** — there's no local dev server on his side. Push to a branch → Cloudflare builds a preview.
