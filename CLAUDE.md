@@ -75,8 +75,7 @@ Section labels are numbered `[03]`…`[07]`.
 ## Open items
 
 - No reel exists (optional; the type-driven hero is the design unless Regi makes one).
-- Top track is in the grid with a placeholder title ("Most-played track") — rename when Regi gives the song name.
-- No posts or drops yet (those filters show a "Cooking." empty state). Music cards are profile links; swap in favourite tracks when Regi sends them.
+- No posts or drops yet (those filters show a "Cooking." empty state). Top track "Feelings Gone" is featured; other music cards are profile links.
 - Social URLs assume handle `regiwock` everywhere except TikTok (`regiwock_`).
 
 ## Before pushing
