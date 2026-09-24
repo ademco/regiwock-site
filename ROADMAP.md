@@ -19,7 +19,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 ### 2.1 Style guide: 3 directions
 - **Goal:** Regi picks the look by comparing options side by side instead of reacting to finished pages.
 - **Done when:** a `/styleguide` page shows 3 distinct directions side by side, each with color palette, type scale (display + body + label), buttons (primary/secondary, hover), and a sample card. It must work on a phone. Regi picks one (or a mix).
-- **Status:** in progress (round 3 of 3, last: **camera screen**, a one-screen DSLR live view on `/styleguide`)
+- **Status:** locked (Regi approved round 3 on 2026-09-24: the **camera screen**, a one-screen DSLR live view, sample on `/styleguide`)
 - **Round 1 → Regi:** picked Broadcast, but no meaningless spinning timers: every number must be real. The whole site should feel like a camera's preview screen ("camera man" theme), with a highlight reel playing as the footage, muted with tap for sound. Drop the drawing motif ("overplayed and too hard").
 - **Round 2:** whole-site viewfinder frame (REC, time-of-day timecode from the visitor's clock, 30P, page name, date, live screen size, framing corners, center mark). Home sample shows a stream still as footage (reel comes in 5.3). Fake timecodes removed from the card.
 - **Round 2 → Regi:** "No." Wants it to feel like fishtank.live with **no scrolling**. Desktop should feel like you're on a DSLR's screen, and mobile the same. Picked the pure DSLR screen, edge to edge, with live muted YouTube as the footage. Readouts must mean something and be tappable where useful ("how many follows I have instead of ISO").
