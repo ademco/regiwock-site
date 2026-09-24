@@ -1,7 +1,7 @@
 ---
-// Roadmap 2.1, round 2. Regi picked direction 3 (Broadcast) and asked for:
-// no fake timers (every number must be real), the whole site framed like a camera's
-// preview screen, and footage (a reel later, a stream still for now) inside it.
+// Roadmap 2.1, round 3 (last). Regi: "feel like fishtank.live, no scrolling; on desktop like
+// you're on a DSLR's screen, same thing on mobile". The whole window is the camera's live
+// view. Every readout means something real and is tappable where that helps.
 // Hidden page: not linked anywhere, noindex.
 import '@fontsource/doto/latin-900.css';
 import '@fontsource/geist-sans/latin-400.css';
@@ -9,435 +9,579 @@ import '@fontsource/geist-sans/latin-600.css';
 import '@fontsource/geist-mono/latin-400.css';
 import '@fontsource/geist-mono/latin-500.css';
 import Base from '../layouts/Base.astro';
-import { PROFILE, COLLABS } from '../config';
-import { detect } from '../lib/platforms.mjs';
+import { PROFILE, ABOUT, COLLABS, SOCIALS, EMAIL, STATS } from '../config';
+import { getWork } from '../lib/work';
 
-const sample = COLLABS[0];
-const thumb = detect(sample.url).thumbnail;
-const roles = PROFILE.roles.join(' · ');
-
-const changes = [
-  ['Timers', 'No more random numbers. The timecode is the real time on your phone, down to the frame.'],
-  ['Frame', 'The whole site is a camera preview: REC light, timecode, framing corners and a center mark on every page.'],
-  ['Footage', 'The home page shows footage in the preview. A stream still for now, your highlight reel later (muted, tap for sound).'],
-  ['Drawing', 'The falling-up drawing is gone.'],
-];
-
-const readouts = [
-  ['● REC', 'Top left', 'The camera is rolling. Blinks once a second.'],
-  ['TOD 00:00:00:00', 'Top middle', 'Time of day: hours, minutes, seconds, frames. It’s the visitor’s real clock.'],
-  ['30P', 'Top right', 'The frame rate the timecode counts in (30 frames a second).'],
-  ['STYLE GUIDE', 'Bottom left', 'Which page you’re on.'],
-  ['THU 24 SEP 2026', 'Bottom middle', 'Today’s date on the visitor’s phone.'],
-  ['390×844', 'Bottom right', 'The visitor’s screen size, live. Turn your phone and it changes.'],
-];
+const work = await getWork();
+const ytId = (m: { platform: string; embed: string }) =>
+  m.platform === 'youtube' ? (m.embed.match(/embed\/([\w-]{11})/)?.[1] ?? '') : '';
+const items = work.map((w) => ({
+  title: w.title,
+  type: w.type,
+  platform: w.media.platformLabel,
+  url: w.url,
+  thumb: w.media.thumbnail,
+  yt: ytId(w.media),
+  note: w.note,
+}));
+// Footage = every YouTube stream on the site, featured first.
+const clips = items.filter((i) => i.yt);
+const first = clips[0];
+const spotify = SOCIALS.find((s) => s.name === 'Spotify')!.url;
+const collabs = COLLABS.map((c) => ({ ...c, clip: clips.findIndex((k) => c.url.includes(k.yt)) }));
+const pad2 = (n: number) => String(n).padStart(2, '0');
 
 const swatches = [
-  { name: 'Studio', hex: '#0B0C0D', use: 'Background' },
-  { name: 'Panel', hex: '#15171A', use: 'Cards, sheets' },
-  { name: 'Signal', hex: '#EEF0EC', use: 'Text, corners' },
-  { name: 'Steel', hex: '#8B9096', use: 'Secondary text' },
-  { name: 'Tally red', hex: '#FF3B2F', use: 'REC, Book me' },
-  { name: 'Preview green', hex: '#3DDC84', use: 'Tap, sent, live' },
+  ['Studio', '#0B0C0D'],
+  ['Panel', '#15171A'],
+  ['Signal', '#EEF0EC'],
+  ['Steel', '#8B9096'],
+  ['Tally red', '#FF3B2F'],
+  ['Preview green', '#3DDC84'],
 ];
 ---
 
-<Base title={`Style guide — ${PROFILE.wordmark}`} description="The Viewfinder look for regiwock.com." noindex>
-  <!-- Viewfinder frame: fixed over every page. All readouts are real. -->
-  <div class="finder" aria-hidden="true">
-    <div class="bar bar-top">
-      <span class="rec"><i></i> REC</span>
-      <span class="num"><span class="dim">TOD</span> <span data-tc>--:--:--:--</span></span>
-      <span>30P</span>
+<Base title={`Style guide — ${PROFILE.wordmark}`} description="The camera-screen look for regiwock.com." noindex>
+  <div class="cam" data-cam>
+    <!-- Live view: the stream plays muted behind the readouts -->
+    <div class="feed" aria-hidden="true">
+      {first?.thumb && <img class="still" src={first.thumb} alt="" data-still onerror="this.hidden=true" />}
+      <div class="yt" data-yt></div>
     </div>
-    <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
-    <span class="center"></span>
-    <div class="bar bar-bottom">
-      <span>Style guide</span>
-      <span class="num" data-date>&nbsp;</span>
-      <span class="num" data-size>&nbsp;</span>
+    <div class="shade" aria-hidden="true"></div>
+    <div class="af" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="focus" aria-hidden="true"></div>
+
+    <div class="hud" data-hud>
+      <header class="top">
+        <a href="#book" class="rec" aria-label="Book me">
+          <span class="rec-dot" aria-hidden="true"></span>
+          <span>REC</span>
+          <span class="rec-book">Book me</span>
+        </a>
+
+        <div class="reads">
+          <button type="button" class="read" data-open="menu" data-tab="about">
+            <small>Creating since</small><b>{STATS.creatingSince}</b>
+          </button>
+          <a class="read" href={spotify} target="_blank" rel="noopener">
+            <small>Monthly listeners</small><b>{STATS.monthlyListeners}</b>
+          </a>
+          <button type="button" class="read" data-open="menu" data-tab="socials">
+            <small>Followers</small><b>{STATS.followers}</b>
+          </button>
+        </div>
+
+        <p class="clock">
+          <b data-time>--:--:--</b>
+          <small data-date>&nbsp;</small>
+        </p>
+      </header>
+
+      <div class="subject">
+        <p class="display mark">{PROFILE.wordmark}</p>
+        <h1 class="display pitch">{PROFILE.pitch}</h1>
+        <p class="label roles">{PROFILE.roles.join(' · ')}</p>
+        <a href="#book" class="b b-primary">
+          <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          ● Book me <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <footer class="bottom">
+        <div class="meter" role="group" aria-label="Footage">
+          <div class="meter-row">
+            <button type="button" class="key-sq" data-step="-1" aria-label="Previous stream">◀</button>
+            <div class="ticks">
+              {clips.map((c, i) => (
+                <button type="button" class="tick" data-clip={i} aria-label={`Show ${c.title}`} aria-current={i === 0 ? 'true' : undefined}><i></i></button>
+              ))}
+            </div>
+            <button type="button" class="key-sq" data-step="1" aria-label="Next stream">▶</button>
+          </div>
+          <p class="label now">
+            <span class="dim">CAM <span data-cam-n>1</span>/{clips.length}</span> <span data-now>{first?.title}</span>
+          </p>
+        </div>
+
+        <nav class="keys" aria-label="Camera menu">
+          <button type="button" class="key" data-sound aria-pressed="false" hidden>
+            <span data-sound-label>Muted</span>
+          </button>
+          <button type="button" class="key" data-open="menu" data-tab="about">Menu</button>
+          <button type="button" class="key key-play" data-open="play">
+            ▶ Play <span class="shots">[{pad2(items.length)}]</span>
+          </button>
+        </nav>
+      </footer>
     </div>
+
+    <!-- MENU: camera-menu style panel over the live view -->
+    <section class="panel" data-panel="menu" aria-label="Menu" hidden>
+      <div class="pbar">
+        <button type="button" class="key" data-close>✕ Back</button>
+        <span class="label">Menu</span>
+        <span class="label dim" data-time>--:--:--</span>
+      </div>
+      <div class="menu">
+        <div class="tabs" role="tablist">
+          {['about', 'collabs', 'socials', 'specs'].map((t) => (
+            <button type="button" role="tab" class="tab" data-tabbtn={t} aria-selected="false">{t}</button>
+          ))}
+        </div>
+
+        <div class="tabpanel" data-tabpanel="about" role="tabpanel">
+          <h2 class="display ph">About</h2>
+          {ABOUT.map((p) => <p class="copy">{p}</p>)}
+        </div>
+
+        <div class="tabpanel" data-tabpanel="collabs" role="tabpanel" hidden>
+          <h2 class="display ph">Collabs</h2>
+          <ul class="collabs">
+            {collabs.map((c) => (
+              <li>
+                <div>
+                  <p class="c-name">{c.name}</p>
+                  <p class="label c-roles">{c.roles.join(' · ')}</p>
+                </div>
+                {c.clip >= 0 ? (
+                  <button type="button" class="key" data-onscreen={c.clip}>On screen</button>
+                ) : (
+                  <a class="key" href={c.url} target="_blank" rel="noopener">Watch ↗</a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="tabpanel" data-tabpanel="socials" role="tabpanel" hidden>
+          <h2 class="display ph">Socials</h2>
+          <ul class="socials">
+            {SOCIALS.map((s) => (
+              <li><a href={s.url} target="_blank" rel="noopener">{s.name} <span aria-hidden="true">↗</span></a></li>
+            ))}
+            <li class="wide"><a href={`mailto:${EMAIL}`}>{EMAIL}</a></li>
+          </ul>
+          <p class="label dim">Followers {STATS.followers} · placeholder until the real counts are in</p>
+        </div>
+
+        <div class="tabpanel" data-tabpanel="specs" role="tabpanel" hidden>
+          <h2 class="display ph">Specs</h2>
+          <ul class="swatches">
+            {swatches.map(([n, hex]) => (
+              <li><span class="chip" style={`background:${hex}`}></span><span class="label">{n}<br /><span class="dim">{hex}</span></span></li>
+            ))}
+          </ul>
+          <div class="specs-type">
+            <p class="display s-display">Book me.</p>
+            <p class="s-h">Stream production <span class="label dim">Geist Sans 600</span></p>
+            <p class="s-body">Body copy in Geist Sans 400. <span class="label dim">Display: Doto 900 · Labels: Geist Mono</span></p>
+          </div>
+          <div class="specs-btns">
+            <button type="button" class="b b-primary"><span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>● Book me →</button>
+            <button type="button" class="b b-secondary"><span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>See work</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAY: DSLR playback mode, one piece of work at a time -->
+    <section class="panel panel-play" data-panel="play" aria-label="Work" hidden>
+      <div class="pbar">
+        <button type="button" class="key" data-close>✕ Back</button>
+        <span class="label">▶ Play</span>
+        <span class="label dim"><span data-play-n>1</span>/{items.length}</span>
+      </div>
+      <div class="viewer" data-viewer>
+        <img class="v-img" alt="" data-v-img hidden />
+        <p class="display v-tile" data-v-tile></p>
+      </div>
+      <div class="v-info">
+        <div class="v-text">
+          <p class="label v-meta"><span class="tag" data-v-type></span> <span class="dim" data-v-platform></span></p>
+          <h2 class="v-title" data-v-title></h2>
+        </div>
+        <div class="v-actions">
+          <button type="button" class="key-sq" data-play-step="-1" aria-label="Previous">◀</button>
+          <button type="button" class="key" data-v-onscreen hidden>On screen</button>
+          <a class="key" data-v-open target="_blank" rel="noopener">Open ↗</a>
+          <button type="button" class="key-sq" data-play-step="1" aria-label="Next">▶</button>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <main class="sg">
-    <section class="block scene" data-scene>
-      <p class="label muted enter" style="--i:0">{PROFILE.wordmark} · Style guide · Round 2 of 3</p>
-      <h1 class="display sg-title enter" style="--i:1">Viewfinder</h1>
-      <p class="lead enter" style="--i:2">
-        You picked 3. It’s now a camera preview: the whole site sits inside the frame, and every number on screen is real.
-      </p>
-      <ul class="changes enter" style="--i:3">
-        {changes.map(([k, v]) => (
-          <li><span class="label">{k}</span><span>{v}</span></li>
-        ))}
-      </ul>
-    </section>
-
-    <!-- Hero sample: the camera preview with footage in it -->
-    <section class="block scene" data-scene>
-      <p class="label block-label">Home page sample</p>
-      <div class="monitor">
-        <div class="footage">
-          {thumb && <img src={thumb} alt="" decoding="async" onerror="this.remove()" />}
-        </div>
-        <span class="lock" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <div class="mon-top enter" style="--i:0">
-          <span class="display mon-mark">{PROFILE.wordmark}</span>
-          <span class="label">Work ↗</span>
-        </div>
-        <p class="label mon-src enter" style="--i:1">Footage · {sample.name}</p>
-        <div class="mon-bottom">
-          <p class="display pitch" aria-label={PROFILE.pitch}>
-            <span class="enter" style="--i:2">The glue</span>
-            <span class="enter" style="--i:3">since 1999.</span>
-          </p>
-          <p class="label muted enter" style="--i:4">{roles}</p>
-          <div class="mon-actions enter" style="--i:5">
-            <button type="button" class="b b-primary">
-              <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-              Book me <span aria-hidden="true">→</span>
-            </button>
-            <button type="button" class="b b-sound" aria-pressed="false" data-sound>
-              <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-              <span data-sound-label>Muted · tap for sound</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <p class="note">This is a still from the {sample.name} stream. Your highlight reel plays here later (roadmap 5.3). The sound button is just the look for now.</p>
-      <button type="button" class="replay label" data-replay>↻ Replay motion</button>
-    </section>
-
-    <section class="block scene" data-scene>
-      <p class="label block-label">The frame · on every page</p>
-      <ul class="readouts">
-        {readouts.map(([sample, where, what]) => (
-          <li>
-            <span class="label ro-sample">{sample}</span>
-            <span class="label muted">{where}</span>
-            <span class="ro-what">{what}</span>
-          </li>
-        ))}
-      </ul>
-      <p class="note">Plus four framing corners and a faint center mark, like the guides on a camera screen.</p>
-    </section>
-
-    <section class="block scene" data-scene>
-      <p class="label block-label">Colors</p>
-      <ul class="swatches">
-        {swatches.map((s) => (
-          <li>
-            <span class="chip" style={`background:${s.hex}`}></span>
-            <span class="sw-name">{s.name}</span>
-            <span class="label muted sw-meta">{s.hex} · {s.use}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-
-    <section class="block scene" data-scene>
-      <p class="label block-label">Type</p>
-      <div class="type">
-        <p class="label muted t-meta">Display · Doto 900 · dot matrix</p>
-        <p class="display t-display">Book me.</p>
-        <p class="label muted t-meta">Heading · Geist Sans 600</p>
-        <p class="t-h">Stream production</p>
-        <p class="label muted t-meta">Body · Geist Sans 400</p>
-        <p class="t-body">I like putting smart, creative people from different worlds in the same room and giving everyone a voice.</p>
-        <p class="label muted t-meta">Label · Geist Mono · caps</p>
-        <p class="label">Camera · Tech setup · Live</p>
-        <p class="label muted t-meta">Readout · Geist Mono · even-width numbers</p>
-        <p class="label num t-readout"><span class="dim">TOD</span> <span data-tc>--:--:--:--</span></p>
-      </div>
-    </section>
-
-    <section class="block scene" data-scene>
-      <p class="label block-label">Buttons</p>
-      <div class="btn-grid">
-        <div>
-          <p class="label muted t-meta">Primary</p>
-          <button type="button" class="b b-primary">
-            <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-            Book me <span aria-hidden="true">→</span>
-          </button>
-        </div>
-        <div>
-          <p class="label muted t-meta">Secondary</p>
-          <button type="button" class="b b-secondary">
-            <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-            See work
-          </button>
-        </div>
-        <div aria-hidden="true">
-          <p class="label muted t-meta">Primary · hover</p>
-          <span class="b b-primary is-hover">
-            <span class="bk"><i></i><i></i><i></i><i></i></span>
-            Book me <span>→</span>
-          </span>
-        </div>
-        <div aria-hidden="true">
-          <p class="label muted t-meta">Secondary · hover</p>
-          <span class="b b-secondary is-hover">
-            <span class="bk"><i></i><i></i><i></i><i></i></span>
-            See work
-          </span>
-        </div>
-      </div>
-      <p class="note">Corners snap onto whatever you touch, like a camera locking focus.</p>
-    </section>
-
-    <section class="block scene" data-scene>
-      <p class="label block-label">Work card · tap it</p>
-      <article class="card" tabindex="0" data-card>
-        <div class="card-media">
-          {thumb && <img src={thumb} alt="" loading="lazy" decoding="async" onerror="this.remove()" />}
-          <span class="lock" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          <span class="label card-rec" aria-hidden="true"><b></b> Play</span>
-        </div>
-        <div class="card-body">
-          <div>
-            <p class="label card-tags"><span class="tag">Stream</span> <span class="muted">YouTube</span></p>
-            <h3 class="card-title">{sample.name}</h3>
-            <p class="card-line muted">{sample.roles.join(' · ')}</p>
-          </div>
-          <span class="card-go" aria-hidden="true">→</span>
-        </div>
-      </article>
-    </section>
-
-    <section class="block scene" data-scene>
-      <p class="label block-label">Motion</p>
-      <p class="t-body">
-        Snap cuts, like switching cameras. Each section flickers on as it enters the frame, corners lock onto what you touch, and the REC
-        light blinks. The timecode moves because it’s the real time. Nothing else counts or spins.
-      </p>
-    </section>
-  </main>
+  <script is:inline type="application/json" id="cam-data" set:html={JSON.stringify({ items, clips })}></script>
 </Base>
 
 <script>
+  type Item = { title: string; type: string; platform: string; url: string; thumb: string; yt: string; note: string };
+  const { items, clips } = JSON.parse(document.getElementById('cam-data')!.textContent!) as { items: Item[]; clips: Item[] };
+  const $ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => root.querySelector<T>(s)!;
+  const $$ = <T extends Element = HTMLElement>(s: string, root: ParentNode = document) => [...root.querySelectorAll<T>(s)];
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Real readouts: the visitor's time of day (HH:MM:SS:FF at 30fps), date and screen size.
-  const tcs = document.querySelectorAll<HTMLElement>('[data-tc]');
-  const dateEl = document.querySelector<HTMLElement>('[data-date]');
-  const sizeEl = document.querySelector<HTMLElement>('[data-size]');
   const pad = (n: number) => String(n).padStart(2, '0');
-  let lastTc = '';
+
+  // ---- Clock + date: the visitor's real time ----
   const tick = () => {
     const d = new Date();
-    const tc = [d.getHours(), d.getMinutes(), d.getSeconds(), Math.floor(d.getMilliseconds() / (1000 / 30))].map(pad).join(':');
-    if (tc !== lastTc) {
-      lastTc = tc;
-      tcs.forEach((el) => (el.textContent = tc));
-    }
-    if (dateEl) {
-      const [wd, mo] = [d.toLocaleDateString('en-US', { weekday: 'short' }), d.toLocaleDateString('en-US', { month: 'short' })];
-      dateEl.textContent = `${wd} ${pad(d.getDate())} ${mo} ${d.getFullYear()}`;
-    }
+    const t = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    $$('[data-time]').forEach((el) => (el.textContent = t));
+    $('[data-date]').textContent =
+      `${d.toLocaleDateString('en-US', { weekday: 'short' })} ${pad(d.getDate())} ${d.toLocaleDateString('en-US', { month: 'short' })} ${d.getFullYear()}`;
   };
-  // Reduced motion: update once a second instead of every frame.
-  if (reduce) setInterval(tick, 1000);
-  else {
-    const loop = () => (tick(), requestAnimationFrame(loop));
-    requestAnimationFrame(loop);
-  }
   tick();
-  const size = () => sizeEl && (sizeEl.textContent = `${innerWidth}×${innerHeight}`);
-  addEventListener('resize', size);
-  size();
+  setInterval(tick, 1000);
 
-  // Sections flicker on as they enter the frame; "Replay" restarts the hero.
-  const play = (el: HTMLElement) => {
-    el.classList.remove('play');
-    void el.offsetWidth;
-    el.classList.add('play');
+  // ---- Live view: muted YouTube behind everything ----
+  const still = document.querySelector<HTMLImageElement>('[data-still]');
+  const ytBox = $('[data-yt]');
+  const soundBtn = $<HTMLButtonElement>('[data-sound]');
+  let current = 0;
+  let soundOn = false;
+  let frame: HTMLIFrameElement | null = null;
+
+  const command = (func: string, args: unknown[] = []) =>
+    frame?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+
+  const show = (i: number) => {
+    current = (i + clips.length) % clips.length;
+    const c = clips[current];
+    if (still) {
+      still.hidden = !c.thumb;
+      if (c.thumb) still.src = c.thumb;
+    }
+    $('[data-now]').textContent = c.title;
+    $('[data-cam-n]').textContent = String(current + 1);
+    $$('[data-clip]').forEach((t, n) => (n === current ? t.setAttribute('aria-current', 'true') : t.removeAttribute('aria-current')));
+    if (reduce) return; // Reduced motion: stills only, nothing autoplays.
+    ytBox.replaceChildren();
+    ytBox.classList.remove('on');
+    const params = new URLSearchParams({
+      autoplay: '1', mute: '1', controls: '0', loop: '1', playlist: c.yt, playsinline: '1',
+      rel: '0', iv_load_policy: '3', disablekb: '1', modestbranding: '1', enablejsapi: '1', origin: location.origin,
+    });
+    frame = document.createElement('iframe');
+    frame.src = `https://www.youtube-nocookie.com/embed/${c.yt}?${params}`;
+    frame.allow = 'autoplay; encrypted-media; picture-in-picture';
+    frame.tabIndex = -1;
+    frame.title = c.title;
+    frame.addEventListener('load', () => {
+      // Ask the player to report its state so we know when it's really playing.
+      frame?.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: 'feed', channel: 'widget' }), '*');
+    });
+    ytBox.append(frame);
   };
-  const io = new IntersectionObserver(
-    (entries) => entries.forEach((e) => e.isIntersecting && (play(e.target as HTMLElement), io.unobserve(e.target))),
-    { threshold: 0.15 },
-  );
-  document.querySelectorAll<HTMLElement>('[data-scene]').forEach((s) => io.observe(s));
-  document.querySelectorAll<HTMLElement>('[data-replay]').forEach((b) => b.addEventListener('click', () => play(b.closest('[data-scene]')!)));
 
-  // Phones can't hover: tapping the card toggles its focus-lock state.
-  document.querySelectorAll<HTMLElement>('[data-card]').forEach((c) => c.addEventListener('click', () => c.classList.toggle('is-on')));
+  addEventListener('message', (e) => {
+    if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(e.origin)) return;
+    let data: { event?: string; info?: { playerState?: number } | number };
+    try { data = JSON.parse(e.data); } catch { return; }
+    if (data.event === 'onReady' && soundOn) command('unMute');
+    if (data.event === 'infoDelivery' && typeof data.info === 'object' && data.info?.playerState === 1) {
+      ytBox.classList.add('on'); // Fade the still out only once video frames are actually showing.
+      soundBtn.hidden = false;
+    }
+    if (data.event === 'onError') ytBox.replaceChildren(); // Not embeddable: the still stays.
+  });
 
-  // Sound toggle: look only until the reel exists.
-  document.querySelectorAll<HTMLButtonElement>('[data-sound]').forEach((b) =>
-    b.addEventListener('click', () => {
-      const on = b.getAttribute('aria-pressed') !== 'true';
-      b.setAttribute('aria-pressed', String(on));
-      b.querySelector('[data-sound-label]')!.textContent = on ? 'Sound on' : 'Muted · tap for sound';
-    }),
-  );
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    $('[data-sound-label]').textContent = soundOn ? 'Sound on' : 'Muted';
+    command(soundOn ? 'unMute' : 'mute');
+    if (soundOn) command('setVolume', [70]);
+  });
+  $$('[data-step]').forEach((b) => b.addEventListener('click', () => show(current + Number(b.dataset.step))));
+  $$('[data-clip]').forEach((b) => b.addEventListener('click', () => show(Number(b.dataset.clip))));
+  if (clips.length) show(0);
+
+  // ---- Panels (MENU / PLAY) over the live view; no page scroll anywhere ----
+  const hud = $('[data-hud]');
+  let openPanel: HTMLElement | null = null;
+  const close = () => {
+    if (!openPanel) return;
+    openPanel.hidden = true;
+    openPanel = null;
+    hud.inert = false;
+  };
+  const open = (name: string, tab?: string) => {
+    close();
+    openPanel = $(`[data-panel="${name}"]`);
+    openPanel.hidden = false;
+    hud.inert = true;
+    if (name === 'menu') selectTab(tab || 'about');
+    if (name === 'play') showItem(playIndex);
+    $<HTMLButtonElement>('[data-close]', openPanel).focus();
+  };
+  $$('[data-open]').forEach((b) => b.addEventListener('click', () => open(b.dataset.open!, b.dataset.tab)));
+  $$('[data-close]').forEach((b) => b.addEventListener('click', close));
+  addEventListener('keydown', (e) => {
+    if ((document.getElementById('book') as HTMLDialogElement).open) return;
+    if (e.key === 'Escape') close();
+    if (openPanel?.dataset.panel === 'play' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) showItem(playIndex + (e.key === 'ArrowLeft' ? -1 : 1));
+    if (!openPanel && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) show(current + (e.key === 'ArrowLeft' ? -1 : 1));
+  });
+
+  const selectTab = (t: string) => {
+    $$('[data-tabbtn]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tabbtn === t)));
+    $$('[data-tabpanel]').forEach((p) => (p.hidden = p.dataset.tabpanel !== t));
+  };
+  $$('[data-tabbtn]').forEach((b) => b.addEventListener('click', () => selectTab(b.dataset.tabbtn!)));
+
+  const onScreen = (clip: number) => {
+    close();
+    show(clip);
+  };
+  $$('[data-onscreen]').forEach((b) => b.addEventListener('click', () => onScreen(Number(b.dataset.onscreen))));
+
+  // Playback: one item at a time, ◀ ▶ / arrow keys / swipe.
+  let playIndex = 0;
+  const vImg = $<HTMLImageElement>('[data-v-img]');
+  const vTile = $('[data-v-tile]');
+  const vOn = $<HTMLButtonElement>('[data-v-onscreen]');
+  const showItem = (i: number) => {
+    playIndex = (i + items.length) % items.length;
+    const it = items[playIndex];
+    $('[data-play-n]').textContent = String(playIndex + 1);
+    $('[data-v-type]').textContent = it.type;
+    $('[data-v-platform]').textContent = it.platform;
+    $('[data-v-title]').textContent = it.title;
+    $<HTMLAnchorElement>('[data-v-open]').href = it.url;
+    vTile.textContent = it.title;
+    vImg.hidden = !it.thumb;
+    vTile.hidden = !!it.thumb;
+    if (it.thumb) vImg.src = it.thumb;
+    const clip = clips.findIndex((c) => c.url === it.url);
+    vOn.hidden = clip < 0;
+    vOn.onclick = () => onScreen(clip);
+  };
+  vImg.addEventListener('error', () => ((vImg.hidden = true), (vTile.hidden = false)));
+  $$('[data-play-step]').forEach((b) => b.addEventListener('click', () => showItem(playIndex + Number(b.dataset.playStep))));
+  let x0: number | null = null;
+  const viewer = $('[data-viewer]');
+  viewer.addEventListener('touchstart', (e) => (x0 = e.touches[0].clientX), { passive: true });
+  viewer.addEventListener('touchend', (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 40) showItem(playIndex + (dx < 0 ? 1 : -1));
+    x0 = null;
+  });
 </script>
 
 <style>
-  /* No paper grain or notebook background on this page. */
+  /* ---- Tokens for this look. Set on :root so the Book me sheet reskins too. ---- */
+  :global(:root:root) {
+    color-scheme: dark;
+    --bg: #0b0c0d; --bg-2: #15171a; --panel: #15171a; --ink: #eef0ec; --muted: #8b9096; --line: rgb(238 240 236 / 0.16);
+    --accent: #ff3b2f; --accent-ink: #0b0c0d; --accent-fill: #ff3b2f; --ok: #3ddc84;
+    --f-display: "Doto", ui-monospace, monospace; --f-body: "Geist Sans", system-ui, sans-serif;
+    --f-mono: "Geist Mono", ui-monospace, monospace; --f-hand: "Geist Mono", ui-monospace, monospace;
+  }
+  :global(html), :global(body) { height: 100%; overflow: hidden; overscroll-behavior: none; background: #000; }
   :global(body::after) { display: none; }
-  :global(body) {
-    --bg: #0b0c0d; --surface: #15171a; --ink: #eef0ec; --muted: #8b9096; --line: rgb(238 240 236 / 0.12);
-    --accent: #ff3b2f; --ok: #3ddc84;
-    --fd: "Doto", monospace; --fb: "Geist Sans", system-ui, sans-serif; --fl: "Geist Mono", ui-monospace, monospace;
-    --bar: 40px;
-    background: var(--bg); color: var(--ink); font-family: var(--fb);
-  }
+  :global(dialog.sheet::backdrop) { background: rgb(0 0 0 / 0.6); }
 
-  /* ---------- Viewfinder frame ---------- */
-  .finder { position: fixed; inset: 0; z-index: 40; pointer-events: none; color: var(--ink); }
-  .bar {
-    position: absolute; left: 0; right: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
-    height: var(--bar); padding: 0 16px; font: 500 12px/1 var(--fl); letter-spacing: 0.06em; text-transform: uppercase;
-  }
-  .bar > :last-child { justify-self: end; }
-  .bar-top {
-    top: 0; height: calc(var(--bar) + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top);
-    background: linear-gradient(rgb(11 12 13 / 0.95), rgb(11 12 13 / 0.75));
-  }
-  .bar-bottom {
-    bottom: 0; height: calc(var(--bar) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
-    background: linear-gradient(rgb(11 12 13 / 0.75), rgb(11 12 13 / 0.95));
-  }
-  .num { font-variant-numeric: tabular-nums; }
+  .cam { position: fixed; inset: 0; overflow: hidden; background: #000; color: var(--ink); font-family: var(--f-body); }
+  .label { font-family: var(--f-mono); font-size: 12px; line-height: 1.35; letter-spacing: 0.06em; text-transform: uppercase; }
+  .display { font-family: var(--f-display); font-weight: 900; text-transform: uppercase; letter-spacing: 0; line-height: 1; }
   .dim { color: var(--muted); }
-  .rec { display: inline-flex; align-items: center; gap: 6px; }
-  .rec i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-  .corner { position: absolute; width: 18px; height: 18px; border: 0 solid rgb(238 240 236 / 0.7); }
-  .c1 { top: calc(var(--bar) + env(safe-area-inset-top) + 6px); left: 8px; border-top-width: 2px; border-left-width: 2px; }
-  .c2 { top: calc(var(--bar) + env(safe-area-inset-top) + 6px); right: 8px; border-top-width: 2px; border-right-width: 2px; }
-  .c3 { bottom: calc(var(--bar) + env(safe-area-inset-bottom) + 6px); left: 8px; border-bottom-width: 2px; border-left-width: 2px; }
-  .c4 { bottom: calc(var(--bar) + env(safe-area-inset-bottom) + 6px); right: 8px; border-bottom-width: 2px; border-right-width: 2px; }
-  .center { position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; translate: -50% -50%; opacity: 0.22; }
-  .center::before, .center::after { content: ""; position: absolute; background: var(--ink); }
-  .center::before { left: 50%; top: 0; bottom: 0; width: 1px; }
-  .center::after { top: 50%; left: 0; right: 0; height: 1px; }
 
-  /* ---------- Page ---------- */
-  .sg {
-    max-width: 60rem; margin: 0 auto;
-    padding: calc(var(--bar) + env(safe-area-inset-top) + 40px) 28px calc(var(--bar) + env(safe-area-inset-bottom) + 56px);
+  /* ---- Live view ---- */
+  .feed { position: absolute; inset: 0; background: radial-gradient(120% 90% at 60% 35%, #2a2d31, #050505); }
+  .still, .yt :global(iframe) {
+    position: absolute; top: 50%; left: 50%; translate: -50% -50%; border: 0;
+    width: max(100vw, 177.78svh); height: max(100svh, 56.25vw);
   }
-  @media (min-width: 1024px) { .sg { padding-left: 48px; padding-right: 48px; } }
-  .sg .label { font-family: var(--fl); font-size: 12px; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase; }
-  .sg .display { font-family: var(--fd); font-weight: 900; text-transform: uppercase; letter-spacing: 0; line-height: 1; }
-  .muted { color: var(--muted); }
-  .block + .block { margin-top: 56px; }
-  .block-label { color: var(--muted); padding-bottom: 10px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
-  .note { margin-top: 12px; font-size: 14px; line-height: 1.5; color: var(--muted); max-width: 52ch; }
-
-  .sg-title { margin-top: 12px; font-size: clamp(44px, 12vw, 88px); }
-  .lead { margin-top: 16px; font-size: 18px; line-height: 1.5; color: #c9ccc8; max-width: 44ch; }
-  .changes { margin-top: 24px; display: grid; gap: 12px; }
-  .changes li { display: grid; grid-template-columns: 5.5rem 1fr; gap: 12px; font-size: 15px; line-height: 1.5; }
-  .changes .label { color: var(--ok); padding-top: 2px; }
-
-  /* ---------- Monitor (hero sample) ---------- */
-  .monitor {
-    position: relative; overflow: hidden; isolation: isolate;
-    min-height: min(560px, 72svh); padding: 18px;
-    display: flex; flex-direction: column; gap: 10px;
-    background: #000; border: 1px solid var(--line);
-  }
-  @media (min-width: 720px) { .monitor { aspect-ratio: 16 / 9; min-height: 0; padding: 28px; } }
-  @media (max-width: 380px) { .sg { padding-left: 20px; padding-right: 20px; } .mon-actions .b { padding: 0 14px; } }
-  .footage { position: absolute; inset: 0; z-index: -1; background: radial-gradient(120% 90% at 60% 30%, #2a2d31, #0b0c0d); }
-  .footage img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.85) brightness(0.72); }
-  .footage::after {
-    content: ""; position: absolute; inset: 0;
+  .still { object-fit: cover; filter: saturate(0.9) brightness(0.8); }
+  /* Oversize the video a little so YouTube's own title/branding falls outside the screen. */
+  .yt :global(iframe) { width: calc(max(100vw, 177.78svh) * 1.18); height: calc(max(100svh, 56.25vw) * 1.18); pointer-events: none; }
+  .yt { position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s steps(3); }
+  .yt.on { opacity: 1; }
+  .shade {
+    position: absolute; inset: 0; pointer-events: none;
     background:
-      linear-gradient(rgb(0 0 0 / 0.55), transparent 30%, transparent 45%, rgb(0 0 0 / 0.85)),
-      repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.03) 0 1px, transparent 1px 3px);
+      linear-gradient(rgb(0 0 0 / 0.7), transparent 24%, transparent 52%, rgb(0 0 0 / 0.85)),
+      radial-gradient(120% 100% at 50% 50%, transparent 60%, rgb(0 0 0 / 0.5)),
+      repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 3px);
   }
-  .monitor > .lock { inset: 10px; opacity: 0.8; }
-  .mon-top { display: flex; justify-content: space-between; align-items: center; }
-  .mon-mark { font-size: 20px; }
-  .mon-src { color: var(--muted); }
-  .mon-bottom { margin-top: auto; display: grid; gap: 12px; }
-  .pitch { font-size: clamp(38px, 10.5vw, 72px); }
-  .pitch span { display: block; }
-  .mon-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
-  .replay { margin-top: 4px; min-height: 44px; color: var(--muted); }
-  .replay:hover { color: var(--ink); }
+  /* AF area corners + center focus box */
+  .af { position: absolute; inset: 14% 8%; pointer-events: none; opacity: 0.55; }
+  .af i, .bk i { position: absolute; width: 18px; height: 18px; border: 0 solid var(--ink); }
+  .bk i { width: 10px; height: 10px; }
+  .af i:nth-child(1), .bk i:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+  .af i:nth-child(2), .bk i:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+  .af i:nth-child(3), .bk i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+  .af i:nth-child(4), .bk i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+  .focus { position: absolute; top: 44%; left: 50%; width: 56px; height: 40px; translate: -50% -50%; border: 1.5px solid rgb(238 240 236 / 0.5); pointer-events: none; }
+  .focus::after { content: ""; position: absolute; inset: 50% auto auto 50%; width: 4px; height: 4px; translate: -50% -50%; background: var(--ink); opacity: 0.6; }
 
-  /* ---------- Readouts ---------- */
-  .readouts { display: grid; gap: 0; }
-  .readouts li { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
-  .ro-sample { font-variant-numeric: tabular-nums; }
-  .ro-what { grid-column: 1 / -1; font-size: 15px; line-height: 1.5; color: #c9ccc8; }
+  /* ---- HUD: three rows, always exactly one screen ---- */
+  .hud {
+    position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; gap: 12px;
+    padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.6);
+  }
+  .top { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "rec clock" "reads reads"; gap: 10px 12px; align-items: start; }
+  .rec { grid-area: rec; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid rgb(255 59 47 / 0.6); background: rgb(0 0 0 / 0.35); font: 500 13px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+  .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .rec-book { color: var(--accent); }
+  .rec:hover, .rec:focus-visible { background: var(--accent); color: var(--accent-ink); text-shadow: none; }
+  .rec:hover .rec-book, .rec:focus-visible .rec-book { color: var(--accent-ink); }
+  .rec:hover .rec-dot, .rec:focus-visible .rec-dot { background: var(--accent-ink); box-shadow: none; }
+  .clock { grid-area: clock; justify-self: end; text-align: right; font-family: var(--f-mono); }
+  .clock b { display: block; font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .clock small { display: block; margin-top: 2px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .reads { grid-area: reads; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .read { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 3px; min-height: 52px; padding: 6px 8px; text-align: left; border: 1px solid transparent; }
+  .read small { font: 500 11px/1.2 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .read b { font: 500 22px/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+  .read:hover, .read:focus-visible { border-color: var(--line); background: rgb(0 0 0 / 0.35); }
 
-  /* ---------- Colors / type ---------- */
-  .swatches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
-  @media (min-width: 720px) { .swatches { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  .chip { display: block; aspect-ratio: 1.6; border: 1px solid var(--line); border-radius: 2px; }
-  .sw-name { display: block; margin-top: 8px; font-size: 15px; font-weight: 600; }
-  .sw-meta { display: block; margin-top: 2px; font-size: 11px !important; }
-  .type { display: grid; gap: 6px; }
-  .t-meta { margin-top: 16px; font-size: 11px !important; }
-  .t-meta:first-child { margin-top: 0; }
-  .t-display { font-size: 52px; color: var(--accent); }
-  .t-h { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
-  .t-body { font-size: 17px; line-height: 1.55; color: #c9ccc8; max-width: 52ch; }
-  .t-readout { font-size: 16px !important; }
+  .subject { align-self: end; display: grid; justify-items: start; gap: 10px; max-width: min(64rem, 100%); }
+  .mark { font-size: 18px; }
+  .pitch { font-size: clamp(36px, 10.5vw, 104px); }
+  .roles { color: #c9ccc8; }
 
-  /* ---------- Buttons ---------- */
-  .btn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; align-items: end; }
-  .btn-grid .t-meta { margin-bottom: 8px; }
+  .bottom { display: grid; gap: 12px; }
+  .meter { display: grid; gap: 4px; min-width: 0; }
+  .meter-row { display: flex; align-items: center; gap: 6px; }
+  .ticks { display: flex; align-items: center; }
+  .tick { display: grid; place-items: center; width: 36px; height: 44px; }
+  .tick i { width: 2px; height: 12px; background: var(--muted); transition: height 0.12s steps(2); }
+  .tick[aria-current] i { height: 24px; width: 3px; background: var(--ink); box-shadow: 0 0 8px rgb(238 240 236 / 0.6); }
+  .tick:hover i { background: var(--ink); }
+  .now { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .keys { display: flex; gap: 8px; }
+  .key, .key-sq {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px;
+    border: 1px solid var(--line); background: rgb(0 0 0 / 0.45); font: 500 13px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase;
+    white-space: nowrap; transition: border-color 0.12s, background-color 0.12s, color 0.12s;
+  }
+  .key-sq { width: 44px; padding: 0; }
+  .key:hover, .key-sq:hover, .key:focus-visible, .key-sq:focus-visible { border-color: var(--ink); }
+  .key:active, .key-sq:active { background: var(--ok); color: var(--bg); text-shadow: none; }
+  .key[aria-pressed="true"] { border-color: var(--ok); color: var(--ok); }
+  .keys .key { flex: 1; }
+  .shots { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* ---- Buttons (primary / secondary) with focus-lock corners ---- */
   .b {
     position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
-    min-height: 48px; padding: 0 20px; white-space: nowrap; cursor: pointer; border-radius: 2px;
-    font: 500 13px/1 var(--fl); letter-spacing: 0.08em; text-transform: uppercase;
-    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+    min-height: 50px; padding: 0 22px; white-space: nowrap; border-radius: 2px;
+    font: 500 14px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; text-shadow: none;
+    transition: background-color 0.15s, border-color 0.15s;
   }
-  .b-primary { background: var(--accent); color: var(--bg); }
-  .b-primary:hover, .b-primary.is-hover { background: #ff5a4f; }
-  .b-secondary, .b-sound { border: 1px solid var(--line); color: var(--ink); }
-  .b-sound { background: rgb(11 12 13 / 0.6); }
-  .b-secondary:hover, .b-secondary.is-hover, .b-sound:hover { border-color: var(--ink); }
-  .b-sound[aria-pressed="true"] { border-color: var(--ok); color: var(--ok); }
-  .b:active { background-color: var(--ok); color: var(--bg); }
+  .b-primary { background: var(--accent); color: var(--accent-ink); }
+  .b-primary:hover { background: #ff5a4f; }
+  .b-secondary { border: 1px solid var(--line); color: var(--ink); }
+  .b-secondary:hover { border-color: var(--ink); }
+  .b:active { background-color: var(--ok); }
+  .bk { position: absolute; inset: -8px; pointer-events: none; opacity: 0; transition: inset 0.16s steps(2), opacity 0.16s steps(2); }
+  .b:hover .bk, .b:focus-visible .bk { inset: -5px; opacity: 1; }
 
-  /* Focus lock: four corners that snap onto a thing, like camera autofocus */
-  .lock, .bk { position: absolute; pointer-events: none; }
-  .lock i, .bk i { position: absolute; width: 10px; height: 10px; border: 0 solid var(--ink); }
-  .lock i:nth-child(1), .bk i:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
-  .lock i:nth-child(2), .bk i:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
-  .lock i:nth-child(3), .bk i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
-  .lock i:nth-child(4), .bk i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
-  .bk { inset: -7px; opacity: 0; transition: inset 0.16s steps(2), opacity 0.16s steps(2); }
-  .b:hover .bk, .b.is-hover .bk, .b:focus-visible .bk { inset: -5px; opacity: 1; }
+  /* ---- Desktop / landscape: one top row, one bottom row ---- */
+  @media (min-width: 900px) {
+    .hud { padding: 20px 28px; }
+    .top { grid-template-columns: auto 1fr auto; grid-template-areas: "rec reads clock"; }
+    .reads { justify-self: center; grid-template-columns: repeat(3, auto); gap: 28px; }
+    .read b { font-size: 28px; }
+    .bottom { grid-template-columns: 1fr auto; align-items: end; }
+    .keys .key { flex: none; }
+    .subject { padding-left: 4%; padding-bottom: 2svh; }
+    .pitch { font-size: clamp(48px, 5.4vw, 88px); }
+    .mark { font-size: 22px; }
+    .af { inset: 16% 10%; }
+  }
+  @media (max-width: 899px) { .af { inset: 22% 6% 44%; } }
+  @media (max-height: 480px) and (orientation: landscape) {
+    .top { grid-template-columns: auto 1fr auto; grid-template-areas: "rec reads clock"; }
+    .reads { grid-template-columns: repeat(3, auto); justify-self: center; gap: 16px; }
+    .read { min-height: 44px; }
+    .bottom { grid-template-columns: 1fr auto; align-items: end; }
+    .pitch { font-size: clamp(28px, 8svh, 56px); }
+    .mark { display: none; }
+    .focus, .af { display: none; }
+  }
+  @media (max-height: 680px) and (max-width: 899px) {
+    .hud { gap: 8px; }
+    .pitch { font-size: clamp(32px, 9.5vw, 44px); }
+    .focus, .af { display: none; }
+  }
 
-  /* ---------- Card ---------- */
-  .card { display: block; max-width: 30rem; cursor: pointer; outline-offset: 4px; border: 1px solid var(--line); background: var(--surface); padding: 8px; border-radius: 2px; }
-  .card-media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
-  .card-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.7) brightness(0.8); transition: filter 0.2s steps(2); }
-  .card-media .lock { inset: 22px; opacity: 0.5; transition: inset 0.16s steps(2), opacity 0.16s steps(2); }
-  .card-rec { position: absolute; left: 14px; bottom: 12px; display: flex; align-items: center; gap: 6px; font-size: 11px !important; opacity: 0; text-shadow: 0 1px 2px #000; }
-  .card-rec b { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-  .card-body { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 12px 6px 6px; }
-  .card-tags { display: flex; align-items: center; gap: 8px; }
+  /* ---- Panels ---- */
+  .panel {
+    position: absolute; inset: 0; z-index: 5; display: grid; grid-template-rows: auto 1fr;
+    padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    background: rgb(11 12 13 / 0.9); backdrop-filter: blur(10px);
+  }
+  .panel[hidden] { display: none; }
+  .pbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .pbar > :first-child { justify-self: start; }
+  .pbar > :last-child { justify-self: end; font-variant-numeric: tabular-nums; }
+  .menu { display: grid; grid-template-rows: auto 1fr; gap: 16px; min-height: 0; padding-top: 14px; }
+  .tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .tab { min-height: 44px; border: 1px solid var(--line); font: 500 12px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tabpanel { min-height: 0; overflow: auto; display: grid; align-content: start; gap: 12px; max-width: 44rem; }
+  .ph { font-size: 32px; margin-bottom: 4px; }
+  .copy { font-size: 15px; line-height: 1.5; color: #c9ccc8; }
+  .collabs { display: grid; }
+  .collabs li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .c-name { font-size: 19px; font-weight: 600; }
+  .c-roles { color: var(--muted); margin-top: 4px; }
+  .socials { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .socials a { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 12px; border: 1px solid var(--line); font: 500 13px/1.2 var(--f-mono); letter-spacing: 0.04em; text-transform: uppercase; }
+  .socials a:hover { border-color: var(--ink); }
+  .socials .wide { grid-column: 1 / -1; }
+  .socials .wide a { text-transform: none; }
+  .swatches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .swatches li { display: flex; align-items: center; gap: 8px; }
+  .chip { flex: none; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 2px; }
+  .swatches .label { font-size: 11px; }
+  .specs-type { display: grid; gap: 6px; padding-top: 6px; }
+  .s-display { font-size: 44px; color: var(--accent); }
+  .s-h { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .s-body { font-size: 15px; color: #c9ccc8; }
+  .specs-btns { display: flex; flex-wrap: wrap; gap: 14px; padding: 8px 6px; }
+  @media (min-width: 900px) {
+    .panel { padding: 20px 28px; }
+    .menu { grid-template-columns: 200px 1fr; grid-template-rows: 1fr; gap: 40px; padding-top: 28px; }
+    .tabs { grid-template-columns: 1fr; align-content: start; }
+    .tab { text-align: left; padding: 0 16px; }
+    .ph { font-size: 44px; }
+    .copy { font-size: 17px; }
+    .socials a { min-height: 56px; }
+  }
+  @media (max-width: 420px) { .socials { grid-template-columns: repeat(2, minmax(0, 1fr)); } .swatches { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* Playback */
+  .panel-play { grid-template-rows: auto 1fr auto; background: rgb(0 0 0 / 0.94); }
+  .viewer { position: relative; min-height: 0; display: grid; place-items: center; padding: 14px 0; touch-action: pan-y; }
+  .v-img { max-width: 100%; max-height: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--line); }
+  .v-tile { max-width: 16ch; font-size: clamp(32px, 8vw, 80px); text-align: center; }
+  .v-info { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .v-meta { display: flex; gap: 10px; }
   .tag { color: var(--ok); }
   .tag::before { content: "● "; }
-  .card-title { margin-top: 6px; font-size: 21px; line-height: 1.15; font-weight: 600; }
-  .card-line { margin-top: 4px; font-size: 15px; }
-  .card-go { flex: none; display: grid; place-items: center; width: 44px; height: 44px; font-family: var(--fl); border: 1px solid var(--line); border-radius: 2px; }
-  .card:hover img, .card.is-on img, .card:focus-visible img { filter: none; }
-  .card:hover .lock, .card.is-on .lock, .card:focus-visible .lock { inset: 12px; opacity: 1; }
-  .card:hover .card-rec, .card.is-on .card-rec, .card:focus-visible .card-rec { opacity: 1; }
-  .card:hover .card-go, .card.is-on .card-go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-
-  /* ---------- Motion ---------- */
-  @keyframes acquire {
-    0% { opacity: 0; clip-path: inset(0 0 100% 0); }
-    30% { opacity: 1; }
-    45% { opacity: 0.3; }
-    60% { opacity: 1; }
-    100% { opacity: 1; clip-path: inset(0 0 0 0); }
+  .v-title { margin-top: 4px; font-size: 22px; font-weight: 600; line-height: 1.15; }
+  .v-actions { display: flex; gap: 8px; }
+  .v-actions .key { flex: 1; }
+  @media (min-width: 900px) {
+    .v-info { grid-template-columns: 1fr auto; align-items: end; }
+    .v-actions .key { flex: none; }
+    .v-title { font-size: 28px; }
   }
+
+  /* ---- Motion: REC blinks; everything else snaps ---- */
   @keyframes blink { 50% { opacity: 0.15; } }
+  @keyframes acquire { 0% { opacity: 0; clip-path: inset(0 0 100% 0); } 40% { opacity: 1; } 55% { opacity: 0.3; } 70%, 100% { opacity: 1; clip-path: inset(0); } }
   @media (prefers-reduced-motion: no-preference) {
-    .js .scene .enter, .js .scene > .block-label { opacity: 0; }
-    .scene.play .enter, .scene.play > .block-label { animation: acquire 0.45s steps(6) both; animation-delay: calc(var(--i, 0) * 120ms); }
-    .rec i, .card-rec b { animation: blink 1s steps(1) infinite; }
+    .rec-dot { animation: blink 1s steps(1) infinite; }
+    .panel:not([hidden]) .tabpanel:not([hidden]), .panel:not([hidden]) .viewer { animation: acquire 0.3s steps(5) both; }
+    .subject, .top, .bottom { animation: acquire 0.45s steps(6) both; }
+    .top { animation-delay: 0.1s; }
+    .subject { animation-delay: 0.25s; }
+    .bottom { animation-delay: 0.4s; }
   }
 </style>

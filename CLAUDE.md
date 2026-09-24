@@ -56,9 +56,9 @@ Flags for `new`: `--featured`, `--tags "a,b"`, `--date 2024-05-01`, `--thumbnail
 - Thumbnails: YouTube → `i.ytimg.com` (maxres if it exists, else hq). Spotify/SoundCloud → oEmbed `thumbnail_url` (fetched by the CLI; if missing, `src/lib/work.ts` retries at build time on Cloudflare, which has internet). TikTok thumbnail URLs expire, so the CLI downloads them to `public/thumbs/`. Instagram/Twitch/Kick/Apple Music → typographic title tile. Any thumbnail that fails to load falls back to the tile.
 - **Cloud sandbox note:** Claude Code on the web can't reach YouTube/Spotify/etc., so `npm run new` there can't verify titles or fetch oEmbed art — always pass a title. YouTube thumbnails still work (derived from the ID).
 
-## Direction change (roadmap 2.1, in progress)
+## Direction change (roadmap 2.1, locked)
 
-Regi picked **Broadcast → "Viewfinder"**: the whole site framed like a camera's preview screen (dark, REC light, focus-lock corners, tally red + preview green, Doto / Geist Sans / Geist Mono). **Every number on screen must be real** (timecode = visitor's time of day, date, screen size); no fake counters. The **drawing motif is dropped**. The notebook pages below are what's live until 2.2 (tokens) and Phase 4 rebuild them. Sample: `/styleguide`.
+Regi picked **Broadcast**, then round 3 made it a **camera screen**: the whole site is **one screen with no scrolling** that feels like a DSLR's live view (fishtank.live energy), on desktop and phone. Live muted YouTube streams are the footage. Dark, REC = Book me, focus-lock corners, tally red + preview green, Doto / Geist Sans / Geist Mono. **Every readout must mean something real** (creating since, monthly listeners, followers, the visitor's time/date, clip count) and be tappable where useful; no fake counters. Work/About/Socials open as camera-menu panels. The **drawing motif is dropped**. The notebook pages below are what's live until 2.2 (tokens) and Phase 4 rebuild them. Sample: `/styleguide`. Readout numbers live in `STATS` in `src/config.ts` (followers is a placeholder).
 
 ## Pages (v2 — "sketchbook", Regi asked for much less going on)
 
