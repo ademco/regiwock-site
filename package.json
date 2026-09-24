@@ -15,7 +15,8 @@
     "list": "node scripts/work.mjs list",
     "feature": "node scripts/work.mjs feature",
     "remove": "node scripts/work.mjs remove",
-    "astro": "astro"
+    "astro": "astro",
+    "frames": "node scripts/frames.mjs"
   },
   "dependencies": {
     "@fontsource/caveat": "^5.3.0",

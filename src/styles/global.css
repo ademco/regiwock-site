@@ -13,7 +13,7 @@
    ------------------------------------------------------------------ */
 :root {
   color-scheme: light;
-  --bg: #f6f5f0;
+  --bg: #fbfaf6;
   --bg-2: #ecebe5;
   --ink: #1d1d1b;
   --muted: #6d6b66;
@@ -58,6 +58,27 @@ body {
 }
 ::selection { background: #ffe600; color: var(--ink); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Ruled notebook paper: blue lines + red margin, laid OVER the drawings (multiply)
+   so the lines show through everything like ink on a real page */
+.notebook::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background:
+    linear-gradient(to right, transparent 0 55px, #f0a7a7 55px 56.5px, transparent 56.5px),
+    repeating-linear-gradient(to bottom, transparent 0 31px, #cddcf0 31px 32px);
+}
+@media (min-width: 640px) {
+  .notebook::after {
+    background:
+      linear-gradient(to right, transparent 0 88px, #f0a7a7 88px 89.5px, transparent 89.5px),
+      repeating-linear-gradient(to bottom, transparent 0 35px, #cddcf0 35px 36px);
+  }
+}
 
 /* Paper grain, stepped like film so it reads as stop-motion */
 body::after {
@@ -184,6 +205,10 @@ body::after {
 @keyframes f3 { 0% { opacity: 1; } 33.33% { opacity: 0; } }
 @keyframes f2 { 0% { opacity: 1; } 50% { opacity: 0; } }
 
+/* Hand-drawn frame sequence (public/fall/*): each frame is visible for 1/n of the cycle */
+@media (prefers-reduced-motion: no-preference) {
+  .drawn-frame { opacity: 0; animation: drawn var(--cycle) steps(1) infinite; }
+}
 /* Clouds scroll DOWN past him (so he reads as rising), in 12fps steps */
 .sky { position: absolute; inset: 0; overflow: hidden; }
 /* paper-colored fades under the header/footer text (cheaper than masking the whole sky) */

@@ -30,6 +30,7 @@ Portfolio + booking site for **Regi (@regiwock)**: creator since 2009, independe
 | `npm run list` | List all work items (★ = featured) |
 | `npm run feature -- <name>` | Toggle featured (big card) |
 | `npm run remove -- <name>` | Delete an item (and its downloaded thumbnail) |
+| `npm run frames -- "<folder>"` | Turn photos/scans of hand-drawn frames into transparent ink frames in `public/fall/` (replaces the code-drawn figure) |
 
 Flags for `new`: `--featured`, `--tags "a,b"`, `--date 2024-05-01`, `--thumbnail "<url>"`.
 **Always quote URLs** (zsh and PowerShell break on `?` and `&`). The script also reads `npm_config_*` env vars because PowerShell can swallow `--` and hand the flags to npm instead.
@@ -50,6 +51,8 @@ Flags for `new`: `--featured`, `--tags "a,b"`, `--date 2024-05-01`, `--thumbnail
 - **`Scene.astro`** — Regi drawn in pencil **"falling upward"**: fixed in the middle with a slow stepped bob, pencil clouds scrolling *down* past him at 12fps (two parallax layers; near clouds stay at the edges so they never bury him), rainbow air streaks trailing below, handwritten caption "fig. 1 — regi, falling up".
   - All drawings come from `src/lib/sketch.ts` (rough.js). Each drawing is rendered as 2–3 frames with different seeds; CSS (`.frames-2/.frames-3`) flips between them for the stop-motion boil (inspired by sicko.jp). The figure's pose is adapted from a falling-mannequin reference, flipped to rise; likeness details from his photo: curly dark hair, fitted dark tee with small chest logo, chain, shorts. It's a stylized sketch — if Regi ever gets hand-drawn frames, swap them in.
   - Clouds + his shirt/shorts/head have a paper-colored fill so layers overlap like cut-outs.
+  - **Regi doesn't like the code-drawn figure** ("looks like a 3rd grader drew it"). Target: anime-style notebook drawing like artlist.io clip 545000 (black-and-white falling man), notebook lines showing. Code can't reach that quality — the plan is real drawn frames: `npm run frames -- "<folder>"` strips paper + blue/pink notebook lines (red channel, relative to the paper median) and writes `public/fall/fall-NN.webp`; `Scene.astro` then plays those at 8fps (`.drawn-frame`) instead of the SVG figure. Keep frames the same canvas size/framing so they don't jump.
+  - The page itself is **ruled notebook paper** (`.notebook::after` overlay: blue lines + red margin, `mix-blend-mode: multiply`, above the drawings so lines show through them). Linework is clean ink (low rough.js roughness, single stroke), graphite shading; rainbow only on Book me.
   - Don't use CSS `mask-image` on the sky — it made Chromium drop the figure layer while animating. Fades are `::before/::after` gradients.
 - **Book me** — `BookDialog.astro`, a `<dialog>` sheet included on every page by `Base.astro`. Any link to `#book` / `/#book` opens it; landing on `/#book` opens it too. Web3Forms (`WEB3FORMS_ACCESS_KEY`), mailto fallback if the key is ever a `YOUR_…` placeholder. Honeypot `botcheck`.
 - **`/work`** — the content-collection grid (`Work.astro`, filter chips), `Collabs.astro` (top 3 from config), `About.astro`, socials. Linked as "Work ↗" from the main page.
@@ -58,7 +61,7 @@ Flags for `new`: `--featured`, `--tags "a,b"`, `--date 2024-05-01`, `--thumbnail
 
 ## Look & motion
 
-- One look: **prism sketchbook** — paper `#f6f5f0`, graphite ink `#1d1d1b`, animated rainbow gradient (`--accent-fill`) for Book me buttons and `accent-text`, colored-pencil hatching on clouds. Tokens in `src/styles/global.css` (`:root`), mapped into Tailwind via `@theme inline` (`bg-bg`, `text-ink`, `text-muted`, `border-line`, `font-display`, `font-hand`…). Utilities: `display`, `label`, `hand`, `accent-text`.
+- One look: **notebook sketch** — ruled paper `#fbfaf6`, graphite ink `#1d1d1b`, animated rainbow gradient (`--accent-fill`) only for Book me buttons and `accent-text`. Tokens in `src/styles/global.css` (`:root`), mapped into Tailwind via `@theme inline` (`bg-bg`, `text-ink`, `text-muted`, `border-line`, `font-display`, `font-hand`…). Utilities: `display`, `label`, `hand`, `accent-text`.
 - All motion is stepped (`steps()`), stop-motion style, and respects `prefers-reduced-motion` (frames freeze on frame 1, nothing scrolls).
 - Inspirations Regi gave: yeezy.com, supreme.com, apple.com, sicko.jp, free-game.virgilabloh.com — simple, minimal, futuristic. **Keep it stripped down.**
 
@@ -69,6 +72,7 @@ Flags for `new`: `--featured`, `--tags "a,b"`, `--date 2024-05-01`, `--thumbnail
 
 ## Open items
 
+- Figure art: waiting on hand-drawn / generated frames from Regi (see Scene notes).
 - Background music: waiting on Regi — an MP3 he owns (e.g. his own track) for `public/audio/ambient.mp3`.
 - No posts or drops yet (those filters show a "Cooking." empty state). Top track "Feelings Gone" is featured; other music cards are profile links.
 - Social URLs assume handle `regiwock` everywhere except TikTok (`regiwock_`).

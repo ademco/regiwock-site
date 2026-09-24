@@ -12,7 +12,7 @@ const r1 = (s: string) => s.replace(/-?\d+\.\d+/g, (n) => (+n).toFixed(1)); // t
 
 export const INK = '#1d1d1b';
 const SOFT = '#9c9a94';
-const PAPER = '#f6f5f0';
+const PAPER = '#fbfaf6';
 export const PRISM = ['#ff2e63', '#ff9f1c', '#e8c700', '#25c26e', '#2ea8ff', '#8a2eff'];
 
 /** Seeded PRNG so every build draws the same picture. */
@@ -91,7 +91,7 @@ export function figureSVG(frameCount = 3) {
   const LH: Pt = [232, 312], LK: Pt = [206, 414], LA: Pt = [174, 494]; // left leg (dangling)
   const RH: Pt = [276, 290], RK: Pt = [338, 370], RA: Pt = [374, 452]; // right leg (kicked back)
 
-  const soft = { stroke: SOFT, strokeWidth: 0.8, roughness: 1.6 };
+  const soft = { stroke: SOFT, strokeWidth: 0.7, roughness: 0.9 };
   const shapes: [Shape, Opts?][] = [
     // construction / gesture lines (light pencil)
     curve([[118, 70], [170, 135], [252, 300], [206, 414], [174, 494]], soft),
@@ -167,10 +167,10 @@ export function figureSVG(frameCount = 3) {
     const t = Math.PI * (0.75 + rand() * 1.0); // crown + back of the tilted head
     const rr = 22 + rand() * 18;
     const c: Pt = [H[0] + Math.cos(t) * rr * 0.95, H[1] + Math.sin(t) * rr];
-    shapes.push(circle(c, 9 + rand() * 9, { strokeWidth: 1.1, roughness: 1.8 }));
+    shapes.push(circle(c, 9 + rand() * 9, { strokeWidth: 1.2, roughness: 0.9 }));
   }
 
-  return frames(shapes, frameCount, { stroke: INK, strokeWidth: 1.4, roughness: 1.1, bowing: 1.2 });
+  return frames(shapes, frameCount, { stroke: INK, strokeWidth: 1.7, roughness: 0.45, bowing: 0.4, disableMultiStroke: true });
 }
 
 // ---------- clouds ----------
@@ -202,26 +202,26 @@ export function cloudTileSVG(seed: number, count: number, scale: number, edgesOn
     // paper-colored fill so clouds overlap (and pass in front of him) like cut-outs
     shapes.push(curve(cloudPts(cx, cy, w, h, rand), { fill: PAPER, fillStyle: 'solid' }));
     // a few shading strokes under the cloud in one prism color
-    const color = PRISM[Math.floor(rand() * PRISM.length)];
+    const color = SOFT; // graphite shading
     const n = 3 + Math.floor(rand() * 3);
     for (let k = 0; k < n; k++) {
       const x0 = cx - w * 0.3 + (k / n) * w * 0.6;
-      shapes.push(line([x0, cy + h * 0.14], [x0 + 16 * scale, cy - 6 * scale], { stroke: color, strokeWidth: 1.2, roughness: 1.4 }));
+      shapes.push(line([x0, cy + h * 0.14], [x0 + 16 * scale, cy - 6 * scale], { stroke: color, strokeWidth: 1, roughness: 0.6, disableMultiStroke: true }));
     }
   }
-  return frames(shapes, frameCount, { stroke: INK, strokeWidth: 1.3, roughness: 1.3, bowing: 1.5 });
+  return frames(shapes, frameCount, { stroke: INK, strokeWidth: 1.5, roughness: 0.5, bowing: 0.6, disableMultiStroke: true });
 }
 
 /** Air streaks under the figure (he's moving up, so they trail down). */
 export function streaksSVG(frameCount = 3) {
   const shapes: [Shape, Opts?][] = [
-    line([170, 30], [170, 90], { stroke: PRISM[4] }),
+    line([170, 30], [170, 90], { stroke: SOFT }),
     line([200, 60], [200, 130]),
-    line([232, 20], [232, 70], { stroke: PRISM[0] }),
+    line([232, 20], [232, 70], { stroke: SOFT }),
     line([262, 70], [262, 120]),
-    line([140, 80], [140, 115], { stroke: PRISM[2] }),
+    line([140, 80], [140, 115], { stroke: SOFT }),
   ];
-  return frames(shapes, frameCount, { stroke: INK, strokeWidth: 1.2, roughness: 1.2 });
+  return frames(shapes, frameCount, { stroke: INK, strokeWidth: 1.2, roughness: 0.5, disableMultiStroke: true });
 }
 
 /** Little hand-drawn arrow for the sketchbook caption. */
