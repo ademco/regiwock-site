@@ -6,9 +6,11 @@ import { PROFILE, SITE_URL, DOMAIN_CONNECTED, DEPLOY_URL, SOCIALS } from '../con
 interface Props {
   title?: string;
   description?: string;
+  /** Keep the page out of search results (e.g. /styleguide). */
+  noindex?: boolean;
 }
 
-const { title = `${PROFILE.wordmark} — ${PROFILE.pitch}`, description = PROFILE.description } = Astro.props;
+const { title = `${PROFILE.wordmark} — ${PROFILE.pitch}`, description = PROFILE.description, noindex = false } = Astro.props;
 
 // Share images must be absolute URLs. Until regiwock.com points here, use the
 // Cloudflare URL (DEPLOY_URL, or CF_PAGES_URL which Pages builds set automatically).
@@ -37,6 +39,7 @@ const jsonLd = {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
     <meta name="theme-color" content="#fbfaf6" />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
