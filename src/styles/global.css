@@ -1,0 +1,397 @@
+@import "tailwindcss";
+
+/* Fonts are self-hosted (latin subset). A font only downloads when the active vibe uses it. */
+@import "@fontsource/instrument-serif/latin-400.css";
+@import "@fontsource/instrument-serif/latin-400-italic.css";
+@import "@fontsource/anton/latin-400.css";
+@import "@fontsource/unbounded/latin-800.css";
+@import "@fontsource/inter-tight/latin-400.css";
+@import "@fontsource/inter-tight/latin-500.css";
+@import "@fontsource/inter-tight/latin-600.css";
+@import "@fontsource/space-grotesk/latin-400.css";
+@import "@fontsource/space-grotesk/latin-500.css";
+@import "@fontsource/space-grotesk/latin-700.css";
+@import "@fontsource/jetbrains-mono/latin-400.css";
+@import "@fontsource/jetbrains-mono/latin-500.css";
+@import "@fontsource/jetbrains-mono/latin-800.css";
+
+/* ------------------------------------------------------------------
+   VIBES — same layout + motifs, different skin. Switch via <html data-vibe>.
+   Every color/font on the page comes from these tokens.
+   ------------------------------------------------------------------ */
+:root,
+[data-vibe="cream"] {
+  color-scheme: light;
+  --bg: #ece7dd;
+  --bg-2: #e2dbcd;
+  --ink: #151412;
+  --muted: #6c665c;
+  --line: rgb(21 20 18 / 0.16);
+  --accent: #ff4f00;
+  --accent-ink: #151412;
+  --accent-fill: var(--accent);
+  --f-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --f-body: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --d-case: none;
+  --d-style: italic;
+  --d-weight: 400;
+  --d-track: -0.035em;
+  --d-leading: 0.82;
+  --wm-size: 29vw; /* hero wordmark: 91vw ÷ the font's width-per-em for "Regiwock" */
+  --grain: 0.09;
+  --inv-bg: #151412;
+  --inv-ink: #ece7dd;
+  --inv-muted: #a39d92;
+  --inv-line: rgb(236 231 221 / 0.2);
+}
+
+[data-vibe="concrete"] {
+  color-scheme: light;
+  --bg: #c7c7c2;
+  --bg-2: #bbbbb5;
+  --ink: #0d0d0d;
+  --muted: #4c4c48;
+  --line: rgb(13 13 13 / 0.2);
+  --accent: #e10600;
+  --accent-ink: #ffffff;
+  --accent-fill: var(--accent);
+  --f-display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --f-body: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --d-case: uppercase;
+  --d-style: normal;
+  --d-weight: 400;
+  --d-track: -0.005em;
+  --d-leading: 0.86;
+  --wm-size: 24.5vw;
+  --grain: 0.12;
+  --inv-bg: #0d0d0d;
+  --inv-ink: #c7c7c2;
+  --inv-muted: #8f8f8a;
+  --inv-line: rgb(199 199 194 / 0.22);
+}
+
+[data-vibe="night"] {
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --bg-2: #141414;
+  --ink: #ededed;
+  --muted: #8b8b8b;
+  --line: rgb(237 237 237 / 0.14);
+  --accent: #c6ff00;
+  --accent-ink: #0a0a0a;
+  --accent-fill: var(--accent);
+  --f-display: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --f-body: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --d-case: uppercase;
+  --d-style: normal;
+  --d-weight: 800;
+  --d-track: -0.06em;
+  --d-leading: 0.9;
+  --wm-size: 21vw;
+  --grain: 0.07;
+  --inv-bg: #c6ff00; /* night's Book me block goes full lime */
+  --inv-ink: #0a0a0a;
+  --inv-muted: #3f5100;
+  --inv-line: rgb(10 10 10 / 0.25);
+}
+
+[data-vibe="prism"] {
+  color-scheme: light;
+  --bg: #f6f6f3;
+  --bg-2: #ebebe7;
+  --ink: #0b0b0b;
+  --muted: #6b6b6b;
+  --line: rgb(11 11 11 / 0.13);
+  --accent: #7a2cff;
+  --accent-ink: #0b0b0b;
+  --accent-fill: linear-gradient(90deg, #ff2e63, #ff9f1c, #ffe600, #25e07a, #2ea8ff, #8a2eff, #ff2e63);
+  --f-display: "Unbounded", ui-sans-serif, system-ui, sans-serif;
+  --f-body: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --d-case: uppercase;
+  --d-style: normal;
+  --d-weight: 800;
+  --d-track: -0.05em;
+  --d-leading: 0.9;
+  --wm-size: 13.4vw;
+  --grain: 0.06;
+  --inv-bg: #0b0b0b;
+  --inv-ink: #f6f6f3;
+  --inv-muted: #9a9a9a;
+  --inv-line: rgb(246 246 243 / 0.18);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --font-display: var(--f-display);
+  --font-body: var(--f-body);
+  --font-mono: var(--f-mono);
+}
+
+/* ------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------ */
+html {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: clip;
+  transition: background-color 0.4s, color 0.4s;
+}
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Film grain — stepped so it reads like stop-motion, not video noise */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.4 -.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 0.9s steps(5) infinite;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -4%); }
+  60% { transform: translate(-4%, -1%); }
+  80% { transform: translate(3%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ------------------------------------------------------------------
+   Type utilities
+   ------------------------------------------------------------------ */
+@utility display {
+  font-family: var(--f-display);
+  text-transform: var(--d-case);
+  font-style: var(--d-style);
+  font-weight: var(--d-weight);
+  letter-spacing: var(--d-track);
+  line-height: var(--d-leading);
+}
+@utility label {
+  font-family: var(--f-mono);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@utility accent-text {
+  color: var(--accent);
+  [data-vibe="prism"] & {
+    background: var(--accent-fill);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: prism 6s linear infinite;
+  }
+}
+@keyframes prism {
+  to { background-position: -200% 0; }
+}
+
+/* ------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------ */
+@layer components {
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid var(--ink);
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+}
+.btn:hover { background: var(--ink); color: var(--bg); }
+.btn-accent {
+  background: var(--accent-fill);
+  background-size: 200% 100%;
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+[data-vibe="prism"] .btn-accent { animation: prism 6s linear infinite; }
+.btn-accent:hover { background: var(--ink); color: var(--bg); }
+.btn .arrow { display: inline-block; transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.btn:hover .arrow { transform: translateX(4px); animation: jitter 0.36s steps(3) infinite; }
+.btn-lg { min-height: 3.5rem; padding: 1rem 1.6rem; font-size: 0.875rem; }
+}
+
+@keyframes jitter {
+  0% { translate: 0 0; }
+  33% { translate: 1px -1px; }
+  66% { translate: -1px 1px; }
+}
+
+/* ------------------------------------------------------------------
+   Motifs
+   ------------------------------------------------------------------ */
+
+/* Hand-drawn "boil" — the wordmark wobbles like stop-motion line art (see Base.astro #boil) */
+@media (prefers-reduced-motion: no-preference) {
+  .boil { filter: url(#boil); }
+}
+
+/* Camera viewfinder corners */
+.vf { position: absolute; inset: 0; pointer-events: none; }
+.vf i {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 0 solid currentColor;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s;
+}
+.vf i:nth-child(1) { top: 10px; left: 10px; border-top-width: 2px; border-left-width: 2px; }
+.vf i:nth-child(2) { top: 10px; right: 10px; border-top-width: 2px; border-right-width: 2px; }
+.vf i:nth-child(3) { bottom: 10px; left: 10px; border-bottom-width: 2px; border-left-width: 2px; }
+.vf i:nth-child(4) { bottom: 10px; right: 10px; border-bottom-width: 2px; border-right-width: 2px; }
+.vf-hover i { opacity: 0; }
+.vf-hover i:nth-child(1) { transform: translate(-8px, -8px); }
+.vf-hover i:nth-child(2) { transform: translate(8px, -8px); }
+.vf-hover i:nth-child(3) { transform: translate(-8px, 8px); }
+.vf-hover i:nth-child(4) { transform: translate(8px, 8px); }
+.group:hover .vf-hover i,
+.group:focus-within .vf-hover i { opacity: 1; transform: none; }
+
+.rec-dot {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 999px;
+  background: #ff2a2a;
+  animation: blink 1.2s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Marquee */
+.marquee { display: flex; width: max-content; animation: marquee 28s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Hero wordmark letters: stepped rise-in */
+.char { display: inline-block; }
+.js .char { animation: rise 0.8s cubic-bezier(0.2, 0.9, 0.1, 1) both; animation-delay: calc(var(--i) * 55ms + 150ms); }
+@keyframes rise {
+  from { transform: translateY(105%) rotate(4deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* Scroll reveal (only when JS is on, so content never gets stuck hidden) */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.1, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.1, 1);
+  transition-delay: var(--d, 0ms);
+}
+.js [data-reveal].in { opacity: 1; transform: none; }
+
+/* Hero placeholder: slow accent blobs behind the type */
+.blob {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(70px);
+  opacity: 0.55;
+  background: var(--accent-fill);
+  animation: drift 18s ease-in-out infinite alternate;
+}
+[data-vibe="night"] .blob { opacity: 0.28; }
+@keyframes drift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(12vw, -6vh) scale(1.2); }
+  100% { transform: translate(-8vw, 8vh) scale(0.9); }
+}
+
+/* Inverted block (the Book me section): swap ink/paper, keep the accent */
+.inverse {
+  --bg: var(--inv-bg);
+  --bg-2: var(--inv-bg);
+  --ink: var(--inv-ink);
+  --muted: var(--inv-muted);
+  --line: var(--inv-line);
+  background: var(--bg);
+  color: var(--ink);
+}
+[data-vibe="night"] .inverse { color-scheme: light; --accent: #0a0a0a; --accent-ink: #c6ff00; --accent-fill: #0a0a0a; }
+[data-vibe="cream"] .inverse, [data-vibe="concrete"] .inverse, [data-vibe="prism"] .inverse { color-scheme: dark; }
+
+/* Work filter */
+.work-card[hidden] { display: none; }
+.work-card.pop { animation: pop 0.45s steps(4) both; }
+@keyframes pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Form controls */
+@layer components {
+.field {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 0.75rem 0;
+  font-size: 1.0625rem;
+  color: var(--ink);
+  border-radius: 0;
+  transition: border-color 0.2s;
+}
+.field:focus { outline: none; border-color: var(--accent); }
+.field::placeholder { color: var(--muted); opacity: 0.7; }
+select.field { appearance: none; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 10px) 55%, calc(100% - 5px) 55%; background-size: 5px 5px; background-repeat: no-repeat; }
+select.field option { color: #111; background: #fff; }
+input[type="date"].field::-webkit-calendar-picker-indicator { opacity: 0.6; }
+[data-vibe="night"] input[type="date"].field::-webkit-calendar-picker-indicator { filter: invert(1); }
+}
+
+.chip-input { position: absolute; opacity: 0; pointer-events: none; }
+.chip-input:checked + span { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip-input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------
+   Vibe switch transition (View Transitions API; instant where unsupported)
+   ------------------------------------------------------------------ */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) {
+  animation: vibe-in 0.75s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+@keyframes vibe-in {
+  from { clip-path: circle(0 at var(--vx, 50%) var(--vy, 0%)); }
+  to { clip-path: circle(150vmax at var(--vx, 50%) var(--vy, 0%)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .js [data-reveal] { opacity: 1; transform: none; }
+}
