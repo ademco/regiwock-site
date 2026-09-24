@@ -12,7 +12,9 @@ const { title = `${PROFILE.wordmark} — ${PROFILE.pitch}`, description = PROFIL
 // Share images must be absolute URLs. Until regiwock.com points here, use the
 // Cloudflare URL (DEPLOY_URL, or CF_PAGES_URL which Pages builds set automatically).
 const assetOrigin = (DOMAIN_CONNECTED ? SITE_URL : DEPLOY_URL || process.env.CF_PAGES_URL || SITE_URL).replace(/\/$/, '');
-const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+// Canonical/og:url point at wherever the site actually lives right now.
+const liveOrigin = DOMAIN_CONNECTED ? SITE_URL : DEPLOY_URL || SITE_URL;
+const canonical = new URL(Astro.url.pathname, liveOrigin).href;
 const ogImage = `${assetOrigin}/og.png`;
 
 const jsonLd = {

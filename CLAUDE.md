@@ -70,7 +70,7 @@ Section labels are numbered `[03]`…`[07]`.
 ## SEO / sharing
 
 `Base.astro` sets title, description, canonical, Open Graph + Twitter tags, JSON-LD Person. `og:image` is `/og.png` (1200×630, rendered in `src/pages/og.png.ts`).
-`SITE_URL` = `https://regiwock.com`. **regiwock.com is still on Beacons.ai (expires Feb 2027)**, so `DOMAIN_CONNECTED = false` makes share images use `DEPLOY_URL` (the live workers.dev URL — fill it in once known) or Pages' `CF_PAGES_URL`. After pointing the domain at Cloudflare Pages, set `DOMAIN_CONNECTED = true`.
+`SITE_URL` = `https://regiwock.com`. **regiwock.com is still on Beacons.ai (expires Feb 2027)**, so `DOMAIN_CONNECTED = false` makes share images, canonical and og:url use `DEPLOY_URL` (live site: https://regiwock-site.coklara123.workers.dev). After pointing the domain at Cloudflare Pages, set `DOMAIN_CONNECTED = true`.
 
 ## Open items
 
