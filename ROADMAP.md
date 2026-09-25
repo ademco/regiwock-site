@@ -28,7 +28,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 ### 2.2 Design tokens
 - **Goal:** the chosen direction becomes the single source of truth for color, type, spacing, radius and motion.
 - **Done when:** tokens live in one place (CSS variables mapped into Tailwind), `/styleguide` shows the final tokens, no hardcoded colors or fonts remain in components, and the build passes.
-- **Status:** in progress
+- **Status:** locked (Regi approved round 3 on 2026-09-25: lightweight Canon camera screen, real follower total; sample on `/styleguide`). Wiring the tokens into `global.css` and the live pages happens with the Phase 4 rebuild.
 - **Kickoff → Regi:** round 3 of 2.1 "feels a little too polished/AI". Wants it old school and rugged, like you're actually on a camera's preview screen and flipping through it, with the SD card / gallery holding past streams and content. Said to pick the most seamless path, so the look fix happens here (the final tokens) instead of reopening 2.1. Started YouTube April 2009, born July 1999 (the 1999 in the pitch).
 - **Round 1:** `/styleguide` becomes a real camera LCD. Bitmap type everywhere (VT323 for readouts and body, Silkscreen for the headline), on-screen text with a hard black outline, RGB pixel grid + grain + corner falloff over everything, rubber gray camera buttons, AF box that hunts and locks green once the stream is really playing, the visitor's real battery (where the browser shares it), INFO button flips to a clean view. MENU is a Canon-style menu (colored tabs, amber select bar, help box that shows the collab one-liners). ▶ SD [09] is SD-card playback: file numbers `100-0003`, names like `MVI_0003.MOV` / `SND_0001.WAV`, ◀ ▶ / swipe, SET to put a stream on screen or open it, ⊞ for a 3×3 index of thumbnails. All colors and fonts are tokens in one `:root` block; the Specs tab reads them back. Doto/Geist are gone. Wiring the tokens into `global.css` and the rest of the site happens once Regi approves the look.
 - **Round 1 → Regi:** sent the reference: a Canon EOS live view (Av, [6575]99, 29:59, battery, mic OFF, left/right icon columns, thirds + diagonal grid, F3.5 / -3..0..+3 scale / ISO 12800 with orange dial marks) and Canon's menu (colored category tabs, numbered pages, gold cursor, SET OK sub-screens). "This is more like what I want."
@@ -69,10 +69,12 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 - **Done when:** the proof is visible without scrolling far, reads at a glance on mobile, and the numbers are current and accurate.
 - **Status:** todo
 
-### 4.4 Work grid
-- **Goal:** show the range (streams, music, posts, drops) fast and cleanly.
-- **Done when:** the grid has tagged cards, working filter chips (All / Streams / Music / Posts / Drops), no empty filters shown, real thumbnails, click-to-load embeds, 44px tap targets, and good behavior at 360px.
-- **Status:** todo
+### 4.4 Work (SD card + Music)
+- **Goal:** show the range (streams, music, posts, drops) fast and cleanly, the camera way.
+- **Done when:** ▶ playback (the SD card) holds only stream VODs that play on the site, with real thumbnails and good behavior at 360px; music has its own MENU → Music tab where every row links out to its platform; nothing empty is shown; 44px tap targets. (Was a filter-chip grid; changed when the site became the camera screen.)
+- **Status:** in progress
+- **Kickoff → Regi:** doesn't like music mixed in with the videos. Flipping through the card should only be VODs he's linked; music goes under a Music tab in the menu (picked option 1). Tracks redirect to their own site (no player on the site). VODs will mostly be YouTube, since Twitch/Kick VODs expire.
+- **Round 1:** the card = stream items with a YouTube link (all 5 today, including the two Blame Kick streams, which are YouTube uploads), all `MVI_####.MOV` files; [05] on the live view. MENU gets a magenta **Music** tab: tracks first (Feelings Gone → Spotify ↗), then "Listen on" Spotify (with live monthly listeners), SoundCloud and Apple Music. Profile links ("Regiwock on Spotify" etc.) stop counting as work. Playback shows the VOD thumbnail full width. Posts and drops get a home once there are any.
 
 ### 4.5 Collabs
 - **Goal:** show the top 3 collabs and exactly what Regi did on each.
