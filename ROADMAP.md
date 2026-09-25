@@ -69,10 +69,12 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 - **Done when:** the proof is visible without scrolling far, reads at a glance on mobile, and the numbers are current and accurate.
 - **Status:** todo
 
-### 4.4 Work grid
-- **Goal:** show the range (streams, music, posts, drops) fast and cleanly.
-- **Done when:** the grid has tagged cards, working filter chips (All / Streams / Music / Posts / Drops), no empty filters shown, real thumbnails, click-to-load embeds, 44px tap targets, and good behavior at 360px.
-- **Status:** todo
+### 4.4 Work (SD card + Music)
+- **Goal:** show the range (streams, music, posts, drops) fast and cleanly, the camera way.
+- **Done when:** ▶ playback (the SD card) holds only stream VODs that play on the site, with real thumbnails and good behavior at 360px; music has its own MENU → Music tab where every row links out to its platform; nothing empty is shown; 44px tap targets. (Was a filter-chip grid; changed when the site became the camera screen.)
+- **Status:** in progress
+- **Kickoff → Regi:** doesn't like music mixed in with the videos. Flipping through the card should only be VODs he's linked; music goes under a Music tab in the menu (picked option 1). Tracks redirect to their own site (no player on the site). VODs will mostly be YouTube, since Twitch/Kick VODs expire.
+- **Round 1:** the card = stream items with a YouTube link (all 5 today, including the two Blame Kick streams, which are YouTube uploads), all `MVI_####.MOV` files; [05] on the live view. MENU gets a magenta **Music** tab: tracks first (Feelings Gone → Spotify ↗), then "Listen on" Spotify (with live monthly listeners), SoundCloud and Apple Music. Profile links ("Regiwock on Spotify" etc.) stop counting as work. Playback shows the VOD thumbnail full width. Posts and drops get a home once there are any.
 
 ### 4.5 Collabs
 - **Goal:** show the top 3 collabs and exactly what Regi did on each.
