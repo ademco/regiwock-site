@@ -1,12 +1,12 @@
 ---
-// Roadmap 2.2, round 1: the camera screen goes "rugged". Regi: "too polished/AI, I want it
-// old school, like you're actually on the preview screen and flipping through a camera; the
-// SD card / gallery is past streams and content". The whole window is a real camera LCD:
-// bitmap type, outlined on-screen text, pixel grid + grain, rubber buttons, a Canon-style menu
-// and SD-card playback. Every readout still means something real.
+// Roadmap 2.2, round 2. Regi sent the reference: a Canon EOS live view (floating white
+// readouts, rule-of-thirds + diagonal grid, orange dial marks, boxed RAW/AWB/ISO labels,
+// the -3..0..+3 scale) and Canon's menu (colored tabs, numbered pages, gold cursor,
+// SET OK screens). The whole window is that camera screen; every readout means something real.
 // Hidden page: not linked anywhere, noindex.
-import '@fontsource/vt323/latin-400.css';
-import '@fontsource/silkscreen/latin-400.css';
+import '@fontsource/barlow-semi-condensed/latin-500.css';
+import '@fontsource/barlow-semi-condensed/latin-600.css';
+import '@fontsource/barlow-semi-condensed/latin-700.css';
 import Base from '../layouts/Base.astro';
 import { PROFILE, ABOUT, COLLABS, SOCIALS, EMAIL, STATS } from '../config';
 import { getWork } from '../lib/work';
@@ -42,75 +42,125 @@ const handle = (url: string) => {
   const seg = new URL(url).pathname.split('/').filter(Boolean).pop() ?? '';
   return /^@?[a-z][\w.]{1,20}$/i.test(seg) && !/\d{5}/.test(seg) ? (seg.startsWith('@') ? seg : `@${seg}`) : 'Open';
 };
-const pages = Math.ceil(items.length / 9);
+const idxPages = Math.ceil(items.length / 9);
 
-// Specs tab: the tokens below, read back from CSS at runtime (hex values live only in :root).
-const swatches = [
-  ['LCD black', '--lcd'],
-  ['OSD white', '--osd'],
-  ['OSD dim', '--osd-dim'],
-  ['Tally red', '--tally'],
-  ['AF green', '--af'],
-  ['Menu select', '--sel'],
-  ['Key', '--key'],
-  ['Tab blue', '--tab-blue'],
-];
-const tabs = [
-  ['about', 'About', '--tab-red'],
-  ['collabs', 'Collabs', '--tab-blue'],
-  ['socials', 'Socials', '--tab-yellow'],
-  ['specs', 'Specs', '--tab-green'],
-];
+// ---- Menu: Canon-style tabs, 6 rows per numbered page, rows can open a SET OK sub-screen ----
+type Row = {
+  label: string;
+  value?: string;
+  href?: string; // link (external when it starts with http)
+  sub?: string; // opens a sub-screen
+  tab?: string; // jumps to another tab
+  play?: boolean; // opens SD playback
+  swatch?: string; // token name, value read back from CSS
+  datetime?: boolean; // the visitor's date/time
+};
+const tabs: { id: string; name: string; code: string; color: string; rows: Row[] }[] = [
+  {
+    id: 'about', name: 'About', code: 'ABOUT', color: '--tab-red',
+    rows: [
+      { label: 'About Regi', value: 'Read', sub: 'about' },
+      { label: 'Creating since', value: STATS.creatingSince },
+      { label: 'Monthly listeners', value: `${STATS.monthlyListeners} ↗`, href: spotify },
+      { label: 'Followers', value: STATS.followers, tab: 'socials' },
+      { label: 'Bookings', value: 'Open', href: '#book' },
+      { label: 'Date/Time', datetime: true },
+    ],
+  },
+  {
+    id: 'collabs', name: 'Collabs', code: 'COLLAB', color: '--tab-blue',
+    rows: [
+      ...collabs.map((c, i) => ({ label: c.name, value: c.roles[0], sub: `collab-${i}` })),
+      { label: 'All work on the card', value: `[${pad2(items.length)}]`, play: true },
+    ],
+  },
+  {
+    id: 'socials', name: 'Socials', code: 'SOCIAL', color: '--tab-yellow',
+    rows: [
+      ...SOCIALS.map((s) => ({ label: s.name, value: `${handle(s.url)} ↗`, href: s.url })),
+      { label: 'Email', value: EMAIL, href: `mailto:${EMAIL}` },
+    ],
+  },
+  {
+    id: 'specs', name: 'Specs', code: 'SPECS', color: '--tab-green',
+    rows: [
+      { label: 'Black', swatch: '--lcd' },
+      { label: 'White', swatch: '--osd' },
+      { label: 'REC red', swatch: '--tally' },
+      { label: 'AF green', swatch: '--af' },
+      { label: 'Cursor gold', swatch: '--sel' },
+      { label: 'Dial orange', swatch: '--dial' },
+      { label: 'Set-value blue', swatch: '--cur' },
+      { label: 'Type', value: 'Barlow Semi Condensed' },
+      { label: 'Buttons + labels', value: 'View', sub: 'buttons' },
+    ],
+  },
+].map((t) => ({ ...t, pages: Array.from({ length: Math.ceil(t.rows.length / 6) }, (_, i) => t.rows.slice(i * 6, i * 6 + 6)) }));
 ---
 
 <Base title={`Style guide — ${PROFILE.wordmark}`} description="The camera-screen look for regiwock.com." noindex>
   <div class="cam" data-cam data-info="full">
-    <!-- Live view: the stream plays muted behind the on-screen display -->
+    <!-- Live view: the stream plays muted behind the readouts (pillarboxed to 3:2 on wide screens) -->
     <div class="feed" aria-hidden="true">
       {first?.thumb && <img class="still" src={first.thumb} alt="" data-still onerror="this.hidden=true" />}
       <div class="yt" data-yt></div>
+      <svg class="grid-lines" viewBox="0 0 300 200" preserveAspectRatio="none">
+        <path d="M100 0V200M200 0V200M0 66.667H300M0 133.333H300M0 0L300 200M300 0L0 200" vector-effect="non-scaling-stroke" />
+      </svg>
+      <div class="af" data-af></div>
     </div>
-    <div class="lcd" aria-hidden="true"></div>
-    <div class="af" data-af aria-hidden="true"></div>
 
     <div class="hud" data-hud>
       <header class="top">
-        <a href="#book" class="rec" aria-label="Book me">
-          <span class="rec-dot" aria-hidden="true"></span><span class="rec-r">REC</span>
-          <span class="rec-book">Book me</span>
-        </a>
-        <div class="status">
+        <div class="top-left">
+          <a href="#book" class="rec" aria-label="Book me">
+            <span class="rec-dot" aria-hidden="true"></span>REC<span class="chip chip-red">Book me</span>
+          </a>
+          <button type="button" class="shots" data-open="play" aria-label={`SD card: ${items.length} files`}>[{pad2(items.length)}]</button>
+        </div>
+        <div class="top-mid">
+          <b class="clock" data-time>--:--</b>
           <span class="batt" data-batt hidden><i></i><i></i><i></i></span>
-          <p class="clock"><b data-time>--:--:--</b> <span data-date>&nbsp;</span></p>
+          <button type="button" class="mic" data-sound aria-pressed="false" hidden>
+            <svg viewBox="0 0 16 22" aria-hidden="true"><rect x="4.5" y="1" width="7" height="12" rx="3.5" /><path d="M1.5 9.5a6.5 6.5 0 0 0 13 0M8 16v4.5M4.5 20.5h7" /></svg>
+            <sub data-sound-label>OFF</sub><span class="sr-only">Sound</span>
+          </button>
         </div>
       </header>
 
+      <ul class="side side-left" aria-label="Roles">
+        {PROFILE.roles.map((r) => <li class="chip">{r}</li>)}
+      </ul>
+
+      <nav class="side side-right" aria-label="Camera buttons">
+        <button type="button" class="key" data-open="menu">Menu</button>
+        <button type="button" class="key" data-open="play" aria-label="Play: past streams and work">▶</button>
+        <button type="button" class="key key-disp" data-info-btn aria-pressed="false"><span class="cam-ico" aria-hidden="true"></span>Disp</button>
+      </nav>
+
       <div class="subject">
         <p class="mark">{PROFILE.wordmark}</p>
-        <h1 class="display pitch">{PROFILE.pitch}</h1>
-        <p class="roles">{PROFILE.roles.join(' · ')}</p>
-        <a href="#book" class="b b-primary">
-          <span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          ● Book me
-        </a>
+        <h1 class="pitch">{PROFILE.pitch}</h1>
+        <a href="#book" class="setbtn"><span class="set">SET</span>Book me</a>
       </div>
 
       <footer class="bottom">
         <div class="reads">
           <button type="button" class="read" data-open="menu" data-tab="about">
-            <small>Creating since</small><b>{STATS.creatingSince}</b>
+            <span class="box">Creating<br />since</span><b>{STATS.creatingSince}</b>
           </button>
           <a class="read" href={spotify} target="_blank" rel="noopener">
-            <small>Monthly listeners</small><b>{STATS.monthlyListeners}</b>
+            <span class="box">Monthly<br />listeners</span><b>{STATS.monthlyListeners}</b>
           </a>
           <button type="button" class="read" data-open="menu" data-tab="socials">
-            <small>Followers</small><b>{STATS.followers}</b>
+            <span class="box">Followers</span><b>{STATS.followers}</b>
           </button>
         </div>
 
         <div class="meter" role="group" aria-label="Footage">
+          <p class="now"><span class="dim">CAM <span data-cam-n>1</span>/{clips.length}</span> <span data-now>{first?.title}</span></p>
           <div class="meter-row">
-            <button type="button" class="nudge" data-step="-1" aria-label="Previous stream">◀</button>
+            <button type="button" class="nudge" data-step="-1" aria-label="Previous stream"><i class="dial" aria-hidden="true"></i></button>
             <div class="scale">
               {clips.map((c, i) => (
                 <button type="button" class="tick" data-clip={i} aria-label={`Show ${c.title}`} aria-current={i === 0 ? 'true' : undefined}>
@@ -118,95 +168,102 @@ const tabs = [
                 </button>
               ))}
             </div>
-            <button type="button" class="nudge" data-step="1" aria-label="Next stream">▶</button>
+            <button type="button" class="nudge" data-step="1" aria-label="Next stream"><i class="dial dial-down" aria-hidden="true"></i></button>
           </div>
-          <p class="now"><span class="dim">CAM <span data-cam-n>1</span>/{clips.length}</span> <span data-now>{first?.title}</span></p>
         </div>
-
-        <nav class="keys" aria-label="Camera buttons">
-          <button type="button" class="key" data-sound aria-pressed="false" hidden><span data-sound-label>Muted</span></button>
-          <button type="button" class="key" data-open="menu" data-tab="about">Menu</button>
-          <button type="button" class="key" data-info-btn aria-pressed="false">Info</button>
-          <button type="button" class="key key-play" data-open="play">
-            ▶ <span class="sd" aria-hidden="true">SD</span> <span class="shots">[{pad2(items.length)}]</span>
-            <span class="sr-only">Play: past streams and work</span>
-          </button>
-        </nav>
       </footer>
     </div>
 
-    <!-- MENU: a camera menu over the live view -->
+    <!-- MENU: Canon-style camera menu -->
     <section class="panel panel-menu" data-panel="menu" aria-label="Menu" hidden>
-      <div class="tabs" role="tablist">
-        {tabs.map(([id, name, color]) => (
-          <button type="button" role="tab" class="tab" data-tabbtn={id} aria-selected="false" style={`--tc: var(${color})`}>
-            <i aria-hidden="true"></i>{name}
-          </button>
+      <div class="menu-list" data-menu-list>
+        <div class="tabs" role="tablist">
+          {tabs.map((t) => (
+            <button type="button" role="tab" class="tab" data-tabbtn={t.id} aria-selected="false" style={`--tc: var(${t.color})`}>{t.name}</button>
+          ))}
+        </div>
+        {tabs.map((t) => (
+          <div class="tabpanel" data-tabpanel={t.id} role="tabpanel" hidden>
+            <div class="pagebar">
+              <div class="pnums">
+                {t.pages.map((_, i) => (
+                  <button type="button" class="pnum" data-pagebtn={i} aria-label={`Page ${i + 1}`} aria-current={i === 0 ? 'true' : undefined}>{i + 1}</button>
+                ))}
+              </div>
+              <span class="pcode">{t.code}<span data-pcode>1</span></span>
+            </div>
+            {t.pages.map((rows, i) => (
+              <ul class="rows" data-page={i} hidden={i > 0}>
+                {rows.map((r) => (
+                  <li>
+                    {r.href ? (
+                      <a class="row" href={r.href} {...(r.href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>
+                        <span>{r.label}</span><span class="val">{r.value}</span>
+                      </a>
+                    ) : r.sub || r.tab || r.play ? (
+                      <button type="button" class="row" data-sub={r.sub} data-go-tab={r.tab} data-open={r.play ? 'play' : undefined}>
+                        <span>{r.label}</span><span class="val">{r.value}</span>
+                      </button>
+                    ) : (
+                      <div class="row row-info">
+                        <span>{r.label}</span>
+                        <span class="val">
+                          {r.swatch && <><span class="swatch" style={`background: var(${r.swatch})`}></span><span data-hex={r.swatch}></span></>}
+                          {r.datetime && <span data-datetime></span>}
+                          {r.value}
+                        </span>
+                      </div>
+                    )}
+                  </li>
+                ))}
+                {Array.from({ length: 6 - rows.length }, () => <li class="row-empty" aria-hidden="true"></li>)}
+              </ul>
+            ))}
+          </div>
         ))}
       </div>
 
-      <div class="tabpanel" data-tabpanel="about" role="tabpanel" hidden>
-        <ul class="rows">
-          <li class="row"><span>Owner</span><span class="val">Regi · @{PROFILE.handle}</span></li>
-          <li class="row"><span>Creating since</span><span class="val">{STATS.creatingSince}</span></li>
-          <li><a class="row" href={spotify} target="_blank" rel="noopener"><span>Monthly listeners</span><span class="val">{STATS.monthlyListeners} ↗</span></a></li>
-          <li><a class="row" href="#book"><span>Bookings</span><span class="val val-red">Open ●</span></a></li>
-        </ul>
-        <div class="help help-long">{ABOUT.map((p) => <p>{p}</p>)}</div>
+      <!-- SET OK sub-screens -->
+      <div class="sub" data-subscreen="about" hidden>
+        <h2 class="sub-title">About Regi</h2>
+        <div class="sub-body sub-text">{ABOUT.map((p) => <p>{p}</p>)}</div>
       </div>
-
-      <div class="tabpanel" data-tabpanel="collabs" role="tabpanel" hidden>
-        <ul class="rows">
-          {collabs.map((c) => (
-            <li>
-              {c.clip >= 0 ? (
-                <button type="button" class="row" data-onscreen={c.clip} data-help={c.line}>
-                  <span>{c.name}</span><span class="val">On screen ▶</span>
-                </button>
-              ) : (
-                <a class="row" href={c.url} target="_blank" rel="noopener" data-help={c.line}>
-                  <span>{c.name}</span><span class="val">Watch ↗</span>
-                </a>
+      {collabs.map((c, i) => (
+        <div class="sub" data-subscreen={`collab-${i}`} hidden>
+          <h2 class="sub-title">{c.name}</h2>
+          <div class="sub-body">
+            <p class="sub-roles">{c.roles.join(' · ')}</p>
+            <p class="sub-line">{c.line}</p>
+            <ul class="rows rows-options">
+              {c.clip >= 0 && (
+                <li><button type="button" class="row" data-onscreen={c.clip}><span>Put on screen</span><span class="val val-cur">CAM {c.clip + 1}</span></button></li>
               )}
-            </li>
-          ))}
-        </ul>
-        <p class="help" data-help-out>{collabs[0]?.line}</p>
-      </div>
-
-      <div class="tabpanel" data-tabpanel="socials" role="tabpanel" hidden>
-        <ul class="rows">
-          {SOCIALS.map((s) => (
-            <li><a class="row" href={s.url} target="_blank" rel="noopener"><span>{s.name}</span><span class="val">{handle(s.url)} ↗</span></a></li>
-          ))}
-          <li><a class="row" href={`mailto:${EMAIL}`}><span>Email</span><span class="val val-lower">{EMAIL}</span></a></li>
-        </ul>
-        <p class="help">Followers {STATS.followers} is a placeholder until the real counts are in.</p>
-      </div>
-
-      <div class="tabpanel" data-tabpanel="specs" role="tabpanel" hidden>
-        <ul class="rows">
-          {swatches.map(([n, v]) => (
-            <li class="row"><span>{n}</span><span class="val"><span class="chip" style={`background: var(${v})`}></span><span data-hex={v}></span></span></li>
-          ))}
-          <li class="row"><span>Display</span><span class="val">Silkscreen</span></li>
-          <li class="row"><span>Readouts + body</span><span class="val">VT323</span></li>
-        </ul>
-        <div class="specs">
-          <p class="display s-display">Book me.</p>
-          <p class="s-body">Body copy is the same bitmap type as every readout, like the camera's own screen.</p>
-          <div class="specs-btns">
-            <button type="button" class="b b-primary"><span class="bk" aria-hidden="true"><i></i><i></i><i></i><i></i></span>● Book me</button>
-            <button type="button" class="key">Menu</button>
-            <button type="button" class="key" aria-pressed="true">Sound on</button>
+              <li><a class="row" href={c.url} target="_blank" rel="noopener"><span>Watch the stream</span><span class="val">YouTube ↗</span></a></li>
+            </ul>
           </div>
+        </div>
+      ))}
+      <div class="sub" data-subscreen="buttons" hidden>
+        <h2 class="sub-title">Buttons + labels</h2>
+        <div class="sub-body specs">
+          <p class="pitch s-pitch">Book me.</p>
+          <div class="specs-row">
+            <span class="setbtn"><span class="set">SET</span>Book me</span>
+            <span class="key">Menu</span>
+            <span class="key key-disp"><span class="cam-ico" aria-hidden="true"></span>Disp</span>
+          </div>
+          <div class="specs-row">
+            <span class="chip">Artist</span><span class="chip chip-red">Book me</span>
+            <span class="read"><span class="box">Monthly<br />listeners</span><b>{STATS.monthlyListeners}</b></span>
+            <i class="dial"></i><i class="dial dial-down"></i>
+          </div>
+          <p class="sub-line">Readouts and labels float on the footage in white with a soft shadow. Gold outline = where the cursor is. Blue = the value that's set.</p>
         </div>
       </div>
 
       <div class="pfoot">
-        <button type="button" class="key" data-close>Menu ↩</button>
-        <span class="dim hint">▲▼ select · ◀▶ tab</span>
-        <span class="dim" data-time>--:--:--</span>
+        <button type="button" class="key" data-close><span>Menu</span> ↩</button>
+        <button type="button" class="setok" data-setok hidden><span class="set">SET</span>OK</button>
       </div>
     </section>
 
@@ -215,9 +272,9 @@ const tabs = [
       <div class="single" data-single>
         <div class="viewer" data-viewer>
           <img class="v-img" alt="" data-v-img hidden />
-          <p class="display v-tile" data-v-tile></p>
+          <p class="v-tile" data-v-tile></p>
         </div>
-        <p class="osd osd-top"><span>▶ <span data-v-no></span></span><span><span data-play-n>1</span>/{items.length} <span class="sd">SD</span></span></p>
+        <p class="osd osd-top"><span>▶ <span data-v-no></span></span><span><span data-play-n>1</span>/{items.length}</span></p>
         <div class="osd osd-bottom">
           <p class="v-file"><span data-v-file></span> <span class="dim" data-v-platform></span></p>
           <h2 class="v-title" data-v-title></h2>
@@ -225,16 +282,16 @@ const tabs = [
       </div>
 
       <div class="index" data-index hidden>
-        <ul class="grid" data-grid></ul>
-        <p class="osd idx-top"><span>▶ Index</span><span><span data-page>1</span>/{pages}</span></p>
+        <p class="osd idx-top"><span>▶ Index</span><span><span data-page>1</span>/{idxPages}</span></p>
+        <ul class="thumbs" data-grid></ul>
       </div>
 
       <div class="pfoot pfoot-play">
         <button type="button" class="key" data-close>▶ ↩</button>
         <button type="button" class="key key-sq" data-play-step="-1" aria-label="Previous">◀</button>
-        <button type="button" class="key key-set" data-v-set>Set</button>
+        <button type="button" class="setok" data-v-set><span class="set">SET</span><span data-v-set-label>On screen</span></button>
         <button type="button" class="key key-sq" data-play-step="1" aria-label="Next">▶</button>
-        <button type="button" class="key" data-index-btn aria-pressed="false">⊞ <span class="sr-only">Index</span></button>
+        <button type="button" class="key key-sq" data-index-btn aria-pressed="false" aria-label="Index">⊞</button>
       </div>
     </section>
   </div>
@@ -251,11 +308,11 @@ const tabs = [
   const pad = (n: number) => String(n).padStart(2, '0');
   const cam = $('[data-cam]');
 
-  // ---- Clock + date: the visitor's real time ----
+  // ---- Clock: the visitor's real time (and date/time in the menu, like the camera's setting) ----
   const tick = () => {
     const d = new Date();
-    $$('[data-time]').forEach((el) => (el.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`));
-    $('[data-date]').textContent = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    $('[data-time]').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    $$('[data-datetime]').forEach((el) => (el.textContent = `'${String(d.getFullYear()).slice(2)}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`));
   };
   tick();
   setInterval(tick, 1000);
@@ -276,7 +333,7 @@ const tabs = [
     b.addEventListener('chargingchange', draw);
   }).catch(() => {});
 
-  // ---- Live view: muted YouTube behind everything; the AF box locks green once it's really playing ----
+  // ---- Live view: muted YouTube behind everything; the AF frame goes green once it's really playing ----
   const still = document.querySelector<HTMLImageElement>('[data-still]');
   const ytBox = $('[data-yt]');
   const af = $('[data-af]');
@@ -284,7 +341,6 @@ const tabs = [
   let current = 0;
   let soundOn = false;
   let frame: HTMLIFrameElement | null = null;
-  let hunt = 0;
 
   const command = (func: string, args: unknown[] = []) =>
     frame?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
@@ -301,9 +357,6 @@ const tabs = [
     $$('[data-clip]').forEach((t, n) => (n === current ? t.setAttribute('aria-current', 'true') : t.removeAttribute('aria-current')));
     if (reduce) return; // Reduced motion: stills only, nothing autoplays.
     af.classList.remove('locked');
-    af.classList.add('hunting');
-    clearTimeout(hunt);
-    hunt = window.setTimeout(() => af.classList.remove('hunting'), 2400);
     ytBox.replaceChildren();
     ytBox.classList.remove('on');
     const params = new URLSearchParams({
@@ -329,7 +382,6 @@ const tabs = [
     if (data.event === 'onReady' && soundOn) command('unMute');
     if (data.event === 'infoDelivery' && typeof data.info === 'object' && data.info?.playerState === 1) {
       ytBox.classList.add('on'); // Show the video only once frames are actually playing.
-      af.classList.remove('hunting');
       af.classList.add('locked');
       soundBtn.hidden = false;
     }
@@ -339,7 +391,7 @@ const tabs = [
   soundBtn.addEventListener('click', () => {
     soundOn = !soundOn;
     soundBtn.setAttribute('aria-pressed', String(soundOn));
-    $('[data-sound-label]').textContent = soundOn ? 'Sound on' : 'Muted';
+    $('[data-sound-label]').textContent = soundOn ? 'ON' : 'OFF';
     command(soundOn ? 'unMute' : 'mute');
     if (soundOn) command('setVolume', [70]);
   });
@@ -347,7 +399,7 @@ const tabs = [
   $$('[data-clip]').forEach((b) => b.addEventListener('click', () => show(Number(b.dataset.clip))));
   if (clips.length) show(0);
 
-  // ---- INFO: like the camera button, flips between the full display and a clean view ----
+  // ---- DISP: like the camera button, flips between the full display and a clean view ----
   const infoBtn = $('[data-info-btn]');
   infoBtn.addEventListener('click', () => {
     const clean = cam.dataset.info === 'full';
@@ -369,35 +421,73 @@ const tabs = [
     openPanel = $(`[data-panel="${name}"]`);
     openPanel.hidden = false;
     hud.inert = true;
-    if (name === 'menu') selectTab(tab || 'about');
-    if (name === 'play') { setIndex(false); showItem(playIndex); }
-    $<HTMLButtonElement>('[data-close]', openPanel).focus({ preventScroll: true });
+    if (name === 'menu') { closeSub(); selectTab(tab || 'about'); }
+    if (name === 'play') { setIndex(false); showItem(playIndex); $<HTMLButtonElement>('[data-close]', openPanel).focus({ preventScroll: true }); }
   };
   $$('[data-open]').forEach((b) => b.addEventListener('click', () => open(b.dataset.open!, b.dataset.tab)));
-  $$('[data-close]').forEach((b) => b.addEventListener('click', close));
 
-  // Menu: colored tabs, rows highlight like a camera menu, help text follows the selected row.
+  // Menu: colored tabs, numbered pages of 6 rows, the gold cursor sits on the focused row.
   const tabIds = $$('[data-tabbtn]').map((b) => b.dataset.tabbtn!);
+  const list = $('[data-menu-list]');
+  const setOk = $('[data-setok]');
   let tab = 'about';
-  const selectTab = (t: string) => {
+  let sub: HTMLElement | null = null;
+  let subFrom: HTMLElement | null = null;
+  const actionable = (root: ParentNode) => $$<HTMLElement>('a.row, button.row', root).filter((r) => !r.closest('[hidden]'));
+  const panelOf = (t: string) => $(`[data-tabpanel="${t}"]`);
+  const setPage = (t: string, p: number, focus: 'first' | 'last' | false = 'first') => {
+    const panel = panelOf(t);
+    const pages = $$('[data-page]', panel);
+    const n = (p + pages.length) % pages.length;
+    pages.forEach((ul, i) => (ul.hidden = i !== n));
+    $$('[data-pagebtn]', panel).forEach((b, i) => (i === n ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current')));
+    $('[data-pcode]', panel).textContent = String(n + 1);
+    const rows = actionable(pages[n]);
+    if (focus && rows.length) rows[focus === 'first' ? 0 : rows.length - 1].focus({ preventScroll: true });
+    return n;
+  };
+  const selectTab = (t: string, focusTab = false) => {
     tab = t;
     $$('[data-tabbtn]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tabbtn === t)));
     $$('[data-tabpanel]').forEach((p) => (p.hidden = p.dataset.tabpanel !== t));
+    setPage(t, 0, focusTab ? false : 'first');
+    if (focusTab) $<HTMLButtonElement>(`[data-tabbtn="${t}"]`).focus({ preventScroll: true });
   };
-  $$('[data-tabbtn]').forEach((b) => b.addEventListener('click', () => selectTab(b.dataset.tabbtn!)));
-  $$('.tabpanel').forEach((panel) => {
-    const out = panel.querySelector('[data-help-out]');
-    if (!out) return;
-    const set = (e: Event) => {
-      const row = (e.target as HTMLElement).closest<HTMLElement>('[data-help]');
-      if (row) out.textContent = row.dataset.help!;
-    };
-    panel.addEventListener('focusin', set);
-    panel.addEventListener('pointerover', set);
-  });
-  const rowsIn = (p: ParentNode) => $$<HTMLElement>('a.row, button.row', p);
+  $$('[data-tabbtn]').forEach((b) => b.addEventListener('click', () => selectTab(b.dataset.tabbtn!, true)));
+  $$('[data-tabpanel]').forEach((panel) =>
+    $$('[data-pagebtn]', panel).forEach((b) => b.addEventListener('click', () => setPage(panel.dataset.tabpanel!, Number(b.dataset.pagebtn), false))),
+  );
+  $$<HTMLElement>('[data-go-tab]').forEach((b) => b.addEventListener('click', () => selectTab(b.dataset.goTab!)));
+  // Hovering a row moves the cursor there, like the camera.
+  $$<HTMLElement>('.panel-menu a.row, .panel-menu button.row').forEach((r) =>
+    r.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && r.focus({ preventScroll: true })),
+  );
+
+  const openSub = (id: string, from: HTMLElement) => {
+    sub = $(`[data-subscreen="${id}"]`);
+    subFrom = from;
+    list.hidden = true;
+    sub.hidden = false;
+    setOk.hidden = false;
+    const rows = actionable(sub);
+    (rows[0] ?? setOk).focus({ preventScroll: true });
+  };
+  const closeSub = () => {
+    if (!sub) return false;
+    sub.hidden = true;
+    sub = null;
+    list.hidden = false;
+    setOk.hidden = true;
+    subFrom?.focus({ preventScroll: true });
+    return true;
+  };
+  $$<HTMLElement>('[data-sub]').forEach((b) => b.dataset.sub && b.addEventListener('click', () => openSub(b.dataset.sub!, b)));
+  setOk.addEventListener('click', closeSub);
+  // MENU ↩ backs out one level: sub-screen → list → live view.
+  $$('[data-close]').forEach((b) => b.addEventListener('click', () => (openPanel?.dataset.panel === 'menu' && closeSub()) || close()));
 
   const onScreen = (clip: number) => {
+    closeSub();
     close();
     show(clip);
   };
@@ -413,7 +503,9 @@ const tabs = [
   const vImg = $<HTMLImageElement>('[data-v-img]');
   const vTile = $('[data-v-tile]');
   const setBtn = $('[data-v-set]');
+  const setLabel = $('[data-v-set-label]');
   const clipOf = (it: Item) => clips.findIndex((c) => c.url === it.url);
+  const labelSet = () => (setLabel.textContent = indexMode ? 'View' : clipOf(items[playIndex]) >= 0 ? 'On screen' : 'Open ↗');
 
   const showItem = (i: number) => {
     playIndex = (i + items.length) % items.length;
@@ -427,8 +519,8 @@ const tabs = [
     vImg.hidden = !it.thumb;
     vTile.hidden = !!it.thumb;
     if (it.thumb) vImg.src = it.thumb;
-    setBtn.textContent = clipOf(it) >= 0 ? 'Set ▶ On screen' : 'Set ▶ Open ↗';
-    // Hard cut: the LCD blanks for a frame between files, like a real camera redrawing.
+    labelSet();
+    // Hard cut: the screen blanks for a frame between files, like the camera redrawing.
     if (!reduce) {
       viewer.classList.remove('cut');
       void viewer.offsetWidth;
@@ -438,8 +530,8 @@ const tabs = [
   };
   vImg.addEventListener('error', () => ((vImg.hidden = true), (vTile.hidden = false)));
   setBtn.addEventListener('click', () => {
-    const it = items[playIndex];
     if (indexMode) return setIndex(false);
+    const it = items[playIndex];
     const clip = clipOf(it);
     if (clip >= 0) onScreen(clip);
     else window.open(it.url, '_blank', 'noopener');
@@ -447,6 +539,7 @@ const tabs = [
   $$('[data-play-step]').forEach((b) => b.addEventListener('click', () => showItem(playIndex + Number(b.dataset.playStep))));
 
   const grid = $('[data-grid]');
+  const tile = (text: string) => Object.assign(document.createElement('span'), { className: 'cell-tile', textContent: text });
   const drawIndex = () => {
     const page = Math.floor(playIndex / 9);
     $('[data-page]').textContent = String(page + 1);
@@ -463,14 +556,12 @@ const tabs = [
           const img = document.createElement('img');
           img.src = it.thumb;
           img.alt = '';
-          img.onerror = () => img.replaceWith(Object.assign(document.createElement('span'), { className: 'cell-tile', textContent: it.title }));
+          img.onerror = () => img.replaceWith(tile(it.title));
           b.append(img);
         } else {
-          b.append(Object.assign(document.createElement('span'), { className: 'cell-tile', textContent: it.title }));
+          b.append(tile(it.title));
         }
-        b.append(Object.assign(document.createElement('span'), { className: 'cell-no', textContent: it.no.slice(4) }));
         b.addEventListener('click', () => {
-          playIndex = n;
           setIndex(false);
           showItem(n);
         });
@@ -484,7 +575,7 @@ const tabs = [
     single.hidden = on;
     index.hidden = !on;
     indexBtn.setAttribute('aria-pressed', String(on));
-    setBtn.textContent = on ? 'Set ▶ View' : clipOf(items[playIndex]) >= 0 ? 'Set ▶ On screen' : 'Set ▶ Open ↗';
+    labelSet();
     if (on) drawIndex();
   };
   indexBtn.addEventListener('click', () => setIndex(!indexMode));
@@ -503,28 +594,41 @@ const tabs = [
   addEventListener('keydown', (e) => {
     if ((document.getElementById('book') as HTMLDialogElement).open) return;
     const k = e.key;
-    if (k === 'Escape') return indexMode && openPanel?.dataset.panel === 'play' ? setIndex(false) : close();
+    if (k === 'Escape') {
+      if (openPanel?.dataset.panel === 'play' && indexMode) return setIndex(false);
+      if (openPanel?.dataset.panel === 'menu' && closeSub()) return;
+      return close();
+    }
     if (!openPanel) {
       if (k === 'ArrowLeft' || k === 'ArrowRight') show(current + (k === 'ArrowLeft' ? -1 : 1));
       return;
     }
+    if (!k.startsWith('Arrow')) return;
     if (openPanel.dataset.panel === 'play') {
       if (k === 'ArrowLeft' || k === 'ArrowRight') showItem(playIndex + (k === 'ArrowLeft' ? -1 : 1));
       if (indexMode && (k === 'ArrowUp' || k === 'ArrowDown')) { e.preventDefault(); showItem(playIndex + (k === 'ArrowUp' ? -3 : 3)); }
       return;
     }
-    if (k === 'ArrowLeft' || k === 'ArrowRight') {
-      const t = tabIds[(tabIds.indexOf(tab) + (k === 'ArrowLeft' ? -1 : 1) + tabIds.length) % tabIds.length];
-      selectTab(t);
-      $<HTMLButtonElement>(`[data-tabbtn="${t}"]`).focus();
-    }
-    if (k === 'ArrowUp' || k === 'ArrowDown') {
-      e.preventDefault();
-      const rows = rowsIn($(`[data-tabpanel="${tab}"]`));
-      if (!rows.length) return;
+    e.preventDefault();
+    if (sub) {
+      const rows = [...actionable(sub), setOk];
       const at = rows.indexOf(document.activeElement as HTMLElement);
-      rows[at < 0 ? 0 : (at + (k === 'ArrowUp' ? -1 : 1) + rows.length) % rows.length].focus();
+      if (k === 'ArrowUp' || k === 'ArrowDown') rows[(at + (k === 'ArrowUp' ? -1 : 1) + rows.length) % rows.length].focus();
+      return;
     }
+    if (k === 'ArrowLeft' || k === 'ArrowRight') {
+      selectTab(tabIds[(tabIds.indexOf(tab) + (k === 'ArrowLeft' ? -1 : 1) + tabIds.length) % tabIds.length]);
+      return;
+    }
+    // Up/Down move the cursor; past the last row it flips to the next numbered page.
+    const pages = $$('[data-page]', panelOf(tab));
+    const page = pages.findIndex((p) => !p.hidden);
+    const rows = actionable(pages[page]);
+    const at = rows.indexOf(document.activeElement as HTMLElement);
+    const next = at + (k === 'ArrowUp' ? -1 : 1);
+    if (at >= 0 && next >= 0 && next < rows.length) rows[next].focus();
+    else if (pages.length > 1 && at >= 0) setPage(tab, page + (k === 'ArrowUp' ? -1 : 1), k === 'ArrowUp' ? 'last' : 'first');
+    else rows[k === 'ArrowUp' ? rows.length - 1 : 0]?.focus();
   });
 
   // Specs: show each token's hex, read back from the CSS.
@@ -536,283 +640,299 @@ const tabs = [
   /* ---- Tokens for this look: the only place colors and fonts are set. On :root so the Book me sheet reskins too. ---- */
   :global(:root:root) {
     color-scheme: dark;
-    --lcd: #0b0c0b;
-    --lcd-2: #1a1b19;
-    --osd: #f2f2ec;
-    --osd-dim: #a4a69d;
-    --outline: #000;
-    --tally: #ff2a1a;
-    --af: #43e35f;
-    --sel: #f5b400;
-    --key: #2e2f2c;
-    --key-2: #1a1b19;
-    --tab-red: #d8392d;
-    --tab-blue: #3a72d8;
-    --tab-yellow: #d9a300;
-    --tab-green: #3aa757;
-    --f-display: "Silkscreen", ui-monospace, monospace;
-    --f-ui: "VT323", ui-monospace, monospace;
+    --lcd: #000000;
+    --lcd-2: #2b2b2b;
+    --osd: #ffffff;
+    --osd-dim: #a8a8a8;
+    --rule: #3c3c3c;
+    --tally: #e8231b;
+    --af: #3fd24a;
+    --sel: #f2a51a;
+    --dial: #f7931e;
+    --cur: #5cb8ff;
+    --tab-red: #e0342b;
+    --tab-blue: #3f86e8;
+    --tab-yellow: #e9b200;
+    --tab-green: #3db552;
+    --f-ui: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
 
     /* Mapped onto the site-wide names so shared components (Book me sheet) follow along. */
     --bg: var(--lcd); --bg-2: var(--lcd-2); --panel: var(--lcd-2); --ink: var(--osd); --muted: var(--osd-dim);
-    --line: rgb(242 242 236 / 0.24); --accent: var(--tally); --accent-ink: var(--outline); --accent-fill: var(--tally); --ok: var(--af);
-    --f-body: var(--f-ui); --f-mono: var(--f-ui); --f-hand: var(--f-ui);
-    /* Camera on-screen text: hard 1px black outline, no soft glow. */
-    --osd-edge: 1px 0 0 var(--outline), -1px 0 0 var(--outline), 0 1px 0 var(--outline), 0 -1px 0 var(--outline), 1px 1px 0 var(--outline);
+    --line: var(--rule); --accent: var(--tally); --accent-ink: var(--osd); --accent-fill: var(--tally); --ok: var(--af);
+    --f-display: var(--f-ui); --f-body: var(--f-ui); --f-mono: var(--f-ui); --f-hand: var(--f-ui);
+    /* Camera readouts: white with a soft dark edge so they read over any footage. */
+    --osd-shadow: 0 0 2px rgb(0 0 0 / 0.9), 0 1px 3px rgb(0 0 0 / 0.7);
   }
-  :global(html), :global(body) { height: 100%; overflow: hidden; overscroll-behavior: none; background: var(--outline); }
+  :global(html), :global(body) { height: 100%; overflow: hidden; overscroll-behavior: none; background: var(--lcd); }
   :global(body::after) { display: none; }
   :global(dialog.sheet::backdrop) { background: rgb(0 0 0 / 0.7); }
-  :global(dialog.sheet .sheet-page) { border: 2px solid var(--osd); box-shadow: none; outline: 0; border-radius: 0; }
+  :global(dialog.sheet .sheet-page) { border: 1px solid var(--rule); box-shadow: none; outline: 0; border-radius: 0; }
   :global(:root dialog.sheet[open] .sheet-page) { animation: none; }
-  :global(dialog.sheet .display) { font-size: 40px; letter-spacing: 0; }
-  :global(dialog.sheet .label), :global(dialog.sheet .field), :global(dialog.sheet .hand) { font-size: 20px; letter-spacing: 0.02em; }
+  :global(dialog.sheet .display) { font-weight: 700; letter-spacing: 0; }
+  :global(dialog.sheet .label) { font-size: 15px; letter-spacing: 0.04em; }
+  :global(dialog.sheet .hand) { font-size: 20px; }
   :global(:focus-visible) { outline: 2px solid var(--sel); outline-offset: 2px; }
 
   .cam {
-    position: fixed; inset: 0; overflow: hidden; background: var(--outline); color: var(--osd);
-    font: 400 20px/1.1 var(--f-ui); text-transform: uppercase; text-shadow: var(--osd-edge);
+    position: fixed; inset: 0; overflow: hidden; background: var(--lcd); color: var(--osd);
+    font: 500 18px/1.15 var(--f-ui); text-shadow: var(--osd-shadow);
   }
-  .display { font-family: var(--f-display); font-weight: 400; text-transform: uppercase; letter-spacing: 0; line-height: 1.05; }
+  .cam :is(button, a) { letter-spacing: inherit; }
   .dim { color: var(--osd-dim); }
-  .cam :is(button, a) { text-transform: inherit; letter-spacing: inherit; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-  /* ---- Live view ---- */
-  .feed { position: absolute; inset: 0; background: radial-gradient(120% 90% at 60% 35%, var(--key), var(--lcd)); }
+  /* ---- Live view (3:2 like the camera's sensor, pillarboxed on wide screens) ---- */
+  .feed {
+    position: absolute; inset: 0 max(0px, calc((100vw - 150svh) / 2)); overflow: hidden; container-type: size;
+    background: radial-gradient(120% 90% at 60% 35%, var(--lcd-2), var(--lcd));
+  }
   .still, .yt :global(iframe) {
     position: absolute; top: 50%; left: 50%; translate: -50% -50%; border: 0;
-    width: max(100vw, 177.78svh); height: max(100svh, 56.25vw);
+    width: max(100cqw, 177.78cqh); height: max(100cqh, 56.25cqw);
   }
   .still { object-fit: cover; }
   /* Oversize the video a little so YouTube's own title/branding falls outside the screen. */
-  .yt :global(iframe) { width: calc(max(100vw, 177.78svh) * 1.18); height: calc(max(100svh, 56.25vw) * 1.18); pointer-events: none; }
+  .yt :global(iframe) { width: calc(max(100cqw, 177.78cqh) * 1.18); height: calc(max(100cqh, 56.25cqw) * 1.18); pointer-events: none; }
   .yt { position: absolute; inset: 0; visibility: hidden; }
   .yt.on { visibility: visible; }
-  /* Slightly crunchy, like footage on a small LCD. */
-  .feed > * { filter: contrast(1.08) saturate(0.92); }
-
-  /* The LCD itself: RGB pixel grid, line gaps, grain and corner falloff sit on top of everything. */
-  .lcd {
-    position: absolute; inset: 0; z-index: 8; pointer-events: none; overflow: hidden;
-    background:
-      repeating-linear-gradient(90deg, rgb(255 0 0 / 0.06) 0 1px, rgb(0 255 0 / 0.05) 1px 2px, rgb(0 80 255 / 0.06) 2px 3px),
-      repeating-linear-gradient(0deg, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px),
-      radial-gradient(140% 110% at 50% 50%, transparent 58%, rgb(0 0 0 / 0.55));
-  }
-  .lcd::after {
-    content: ""; position: absolute; inset: -40px; opacity: 0.13; mix-blend-mode: screen;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  /* AF frame: hunts (blinks) while the stream loads, locks green once it's playing. */
-  .af { position: absolute; top: 42%; left: 50%; z-index: 1; width: 64px; height: 44px; translate: -50% -50%; border: 2px solid var(--osd); box-shadow: 0 0 0 1px var(--outline), inset 0 0 0 1px var(--outline); pointer-events: none; }
+  .grid-lines { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: rgb(255 255 255 / 0.42); stroke-width: 1; }
+  /* AF frame: white while it searches, green once the stream is actually playing. */
+  .af { position: absolute; top: 50%; left: 50%; width: 72px; height: 52px; translate: -50% -50%; border: 2px solid var(--osd); filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8)); }
   .af.locked { border-color: var(--af); }
 
-  /* ---- On-screen display: top row, subject, bottom info band. Always exactly one screen. ---- */
-  .hud { position: absolute; inset: 0; z-index: 2; display: grid; grid-template-rows: auto 1fr auto; }
-  .top {
-    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
-    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
+  /* ---- Readouts, laid out like the Canon live view ---- */
+  .hud {
+    position: absolute; inset: 0; display: grid;
+    grid-template-columns: auto 1fr auto; grid-template-rows: auto 1fr auto auto;
+    grid-template-areas: "top top top" "left . right" "subject subject subject" "bottom bottom bottom";
+    column-gap: 12px;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   }
-  .rec { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 2px solid var(--osd); background: rgb(0 0 0 / 0.4); font-size: 24px; box-shadow: 0 0 0 1px var(--outline); }
-  .rec-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--tally); box-shadow: 0 0 0 1px var(--outline); }
-  .rec-r { color: var(--tally); }
-  .rec:hover, .rec:focus-visible { background: var(--tally); border-color: var(--tally); color: var(--outline); text-shadow: none; }
-  .rec:hover .rec-r, .rec:focus-visible .rec-r { color: var(--outline); }
-  .rec:hover .rec-dot, .rec:focus-visible .rec-dot { background: var(--outline); }
-  .status { display: flex; align-items: center; gap: 12px; min-height: 44px; }
-  .clock { font-size: 22px; font-variant-numeric: tabular-nums; text-align: right; }
-  .clock span { color: var(--osd); }
+  .top { grid-area: top; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .top-left { display: flex; align-items: center; gap: 12px; }
+  .rec { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; font-size: 32px; font-weight: 700; line-height: 1; white-space: nowrap; }
+  .rec-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--tally); }
+  .rec .chip { margin-left: 4px; }
+  .rec:hover .chip, .rec:focus-visible .chip { background: var(--osd); color: var(--lcd); }
+  .shots { min-height: 44px; font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .shots:hover { color: var(--sel); }
+  .top-mid { display: flex; align-items: center; gap: 10px; }
+  .clock { font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-  /* Battery, drawn like the camera's: outline, nub, up to 3 bars. */
-  .batt { position: relative; display: inline-flex; gap: 2px; width: 30px; height: 15px; padding: 2px; border: 2px solid var(--osd); box-shadow: 0 0 0 1px var(--outline); }
-  .batt::after { content: ""; position: absolute; right: -6px; top: 3px; width: 3px; height: 5px; background: var(--osd); }
+  /* Battery like the camera's: outline, nub, up to 3 bars. */
+  .batt { position: relative; display: inline-flex; gap: 2px; width: 30px; height: 14px; padding: 2px; border: 1.5px solid var(--osd); border-radius: 2px; filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8)); }
+  .batt::after { content: ""; position: absolute; right: -5px; top: 3px; width: 3px; height: 5px; background: var(--osd); }
   .batt i { flex: 1; background: var(--osd); }
   .batt[data-bars="1"] i:nth-child(n + 2), .batt[data-bars="2"] i:nth-child(3) { visibility: hidden; }
   .batt[data-low] { border-color: var(--tally); }
   .batt[data-low] i { background: var(--tally); }
+  /* Mic with OFF/ON underneath = the sound toggle, like the camera's recording-level icon. */
+  .mic { display: inline-flex; align-items: flex-end; min-width: 44px; min-height: 44px; justify-content: center; }
+  .mic svg { width: 14px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8)); }
+  .mic svg rect { fill: currentColor; stroke: none; }
+  .mic sub { font-size: 12px; font-weight: 700; line-height: 1; margin-bottom: 11px; }
+  .mic[aria-pressed="true"] { color: var(--cur); }
 
-  .subject { align-self: end; display: grid; justify-items: start; gap: 8px; padding: 0 max(12px, env(safe-area-inset-right)) 14px max(12px, env(safe-area-inset-left)); max-width: 68rem; }
-  .mark { font-size: 24px; }
-  .pitch { font-size: clamp(30px, 9.4vw, 92px); text-shadow: 2px 0 0 var(--outline), -2px 0 0 var(--outline), 0 2px 0 var(--outline), 0 -2px 0 var(--outline), 3px 3px 0 var(--outline); }
-  .roles { font-size: 22px; }
+  /* Boxed labels: filled like RAW (chip), outlined like ISO (box) */
+  .chip { display: inline-block; padding: 1px 5px; border-radius: 3px; background: var(--osd); color: var(--lcd); font-size: 13px; font-weight: 700; line-height: 1.2; text-transform: uppercase; text-shadow: none; white-space: nowrap; box-shadow: 0 0 2px rgb(0 0 0 / 0.6); }
+  .chip-red { background: var(--tally); color: var(--osd); }
+  .box { display: inline-block; padding: 1px 3px; border: 1.5px solid currentColor; border-radius: 2px; font-size: 10px; font-weight: 700; line-height: 1.05; text-transform: uppercase; text-align: center; }
 
-  /* Bottom info band, edge to edge like the camera's shooting-info strip. */
-  .bottom {
-    display: grid; gap: 8px; background: rgb(0 0 0 / 0.72); border-top: 1px solid var(--line);
-    padding: 8px max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-  }
-  .reads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .read { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; min-height: 48px; padding: 2px 8px; text-align: left; border: 1px solid transparent; }
-  .read + .read { border-left-color: var(--line); }
-  .read small { font-size: 17px; color: var(--osd-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-  .read b { white-space: nowrap; font-size: 30px; font-weight: 400; font-variant-numeric: tabular-nums; }
-  .read:hover, .read:focus-visible { background: var(--sel); color: var(--outline); text-shadow: none; }
-  .read:hover small, .read:focus-visible small { color: var(--outline); }
-
-  /* Exposure-scale style picker: one number per stream, ▲ under the one on screen. */
-  .meter { display: grid; gap: 2px; min-width: 0; }
-  .meter-row { display: flex; align-items: center; gap: 4px; }
-  .nudge { width: 44px; min-height: 44px; font-size: 20px; }
-  .nudge:hover { color: var(--sel); }
-  .scale { display: flex; flex: 1; justify-content: space-between; max-width: 22rem; background: linear-gradient(var(--osd-dim), var(--osd-dim)) center 26px / calc(100% - 36px) 1px no-repeat; }
-  .tick { position: relative; display: grid; justify-items: center; align-content: start; gap: 3px; width: 36px; height: 48px; padding-top: 4px; font-size: 22px; }
-  .tick i { width: 2px; height: 7px; background: var(--osd); box-shadow: 0 0 0 1px var(--outline); }
-  .tick[aria-current] i { width: 0; height: 0; margin-top: 1px; background: none; box-shadow: none; border: 7px solid transparent; border-bottom-color: var(--osd); border-top: 0; filter: drop-shadow(0 0 1px var(--outline)); }
-  .tick[aria-current] span { color: var(--sel); }
-  .tick:hover span { color: var(--sel); }
-  .now { font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* Rubber camera buttons: flat gray, hard bevel, press down on tap. */
-  .keys { display: flex; gap: 6px; }
+  .side { display: grid; gap: 14px; align-content: center; justify-items: start; }
+  .side-left { grid-area: left; }
+  .side-right { grid-area: right; justify-items: end; gap: 8px; }
   .key {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 14px;
-    background: var(--key); color: var(--osd); border: 1px solid var(--outline); border-radius: 3px;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), inset 0 -3px 0 var(--key-2), 0 1px 0 var(--outline);
-    font: 400 22px/1 var(--f-ui); text-transform: uppercase; white-space: nowrap; text-shadow: 0 1px 0 var(--outline);
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 44px; min-height: 44px; padding: 0 10px;
+    border: 1.5px solid var(--osd); border-radius: 4px; background: rgb(0 0 0 / 0.35);
+    font-size: 17px; font-weight: 700; line-height: 1; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 2px rgb(0 0 0 / 0.6);
   }
-  .key:hover { background: var(--lcd-2); }
-  .key:active { translate: 0 2px; box-shadow: inset 0 2px 2px var(--outline); }
-  .key[aria-pressed="true"] { color: var(--sel); }
-  .keys .key { flex: 1; }
-  .key-play .sd, .osd .sd { display: inline-block; padding: 0 3px; font-size: 15px; line-height: 16px; border: 1px solid currentColor; clip-path: polygon(0 0, 72% 0, 100% 28%, 100% 100%, 0 100%); }
-  .shots { font-variant-numeric: tabular-nums; }
-  [data-info="clean"] .subject, [data-info="clean"] .reads, [data-info="clean"] .meter { visibility: hidden; }
-  [data-info="clean"] .bottom { background: none; border-color: transparent; }
+  .key:hover, .key:focus-visible { border-color: var(--sel); color: var(--sel); outline: 0; }
+  .key:active { background: var(--sel); color: var(--lcd); text-shadow: none; }
+  .key[aria-pressed="true"] { color: var(--cur); border-color: var(--cur); }
+  .cam-ico { position: relative; width: 14px; height: 10px; border-radius: 2px; background: currentColor; }
+  .cam-ico::before { content: ""; position: absolute; left: 3px; top: -3px; width: 5px; height: 3px; background: currentColor; }
+  .cam-ico::after { content: ""; position: absolute; left: 4px; top: 2px; width: 6px; height: 6px; border-radius: 50%; background: var(--lcd); }
 
-  /* ---- Book me button (red), with focus-lock corners on hover ---- */
-  .b {
-    position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.4em;
-    min-height: 50px; padding: 0 22px; white-space: nowrap;
-    font: 400 26px/1 var(--f-ui); text-transform: uppercase; text-shadow: none;
-    border: 2px solid var(--outline); box-shadow: 3px 3px 0 var(--outline);
+  .subject { grid-area: subject; display: grid; justify-items: start; gap: 6px; padding-bottom: 10px; max-width: 60rem; }
+  .mark { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pitch { font-size: clamp(38px, 11vw, 96px); font-weight: 700; line-height: 0.95; letter-spacing: -0.01em; }
+  /* SET + label, with the gold cursor around it: the camera's "this is selected, press SET". */
+  .setbtn, .setok {
+    display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 16px 0 10px;
+    border: 2px solid var(--sel); background: rgb(0 0 0 / 0.55); font-size: 24px; font-weight: 600; line-height: 1; white-space: nowrap;
   }
-  .b-primary { background: var(--tally); color: var(--outline); }
-  .b:hover { background: var(--osd); }
-  .b:active { translate: 2px 2px; box-shadow: 1px 1px 0 var(--outline); }
-  .bk { position: absolute; inset: -9px; pointer-events: none; visibility: hidden; }
-  .bk i { position: absolute; width: 10px; height: 10px; border: 0 solid var(--af); }
-  .bk i:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
-  .bk i:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
-  .bk i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
-  .bk i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
-  .b:hover .bk, .b:focus-visible .bk { visibility: visible; }
+  .setbtn:hover, .setbtn:focus-visible, .setok:hover, .setok:focus-visible { background: var(--sel); color: var(--lcd); text-shadow: none; outline: 0; }
+  .set { padding: 2px 5px; border-radius: 3px; background: var(--osd); color: var(--lcd); font-size: 14px; font-weight: 700; text-shadow: none; }
+  .setbtn:hover .set, .setbtn:focus-visible .set, .setok:hover .set, .setok:focus-visible .set { background: var(--lcd); color: var(--osd); }
 
-  /* ---- Desktop / landscape ---- */
+  .bottom { grid-area: bottom; display: grid; gap: 4px; }
+  .reads { display: flex; justify-content: space-between; gap: 6px; }
+  .read { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 44px; }
+  .read b { font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .read:hover, .read:focus-visible { color: var(--sel); outline: 0; }
+  .meter { display: grid; justify-items: center; min-width: 0; }
+  .meter-row { display: flex; align-items: center; }
+  .now { max-width: 100%; font-size: 16px; font-weight: 600; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Orange dial marks: turn this to change the stream. */
+  .nudge { display: grid; place-items: center; width: 44px; height: 44px; }
+  .dial {
+    display: inline-block; width: 30px; height: 15px; border: 5px solid var(--dial); border-bottom: 0; border-radius: 15px 15px 0 0;
+    -webkit-mask: repeating-conic-gradient(from -90deg at 50% 100%, #000 0 13deg, transparent 13deg 20deg);
+    mask: repeating-conic-gradient(from -90deg at 50% 100%, #000 0 13deg, transparent 13deg 20deg);
+  }
+  .dial-down { rotate: 180deg; }
+  .nudge:hover .dial { border-color: var(--sel); }
+  /* The exposure scale, one mark per stream: numbers with dots between, ticks under, the marker on the live one. */
+  .scale { display: flex; }
+  .tick { position: relative; display: grid; justify-items: center; align-content: center; gap: 3px; width: 40px; height: 44px; font-size: 18px; font-weight: 600; }
+  .tick + .tick::before { content: ".."; position: absolute; left: -5px; top: 7px; font-size: 18px; }
+  .tick i { width: 5px; height: 10px; background: var(--osd); box-shadow: 0 0 2px rgb(0 0 0 / 0.8); }
+  .tick span { height: 20px; line-height: 20px; }
+  .tick[aria-current] span { color: transparent; text-shadow: none; position: relative; }
+  .tick[aria-current] span::after { content: ""; position: absolute; left: 50%; top: 3px; width: 9px; height: 15px; translate: -50% 0; border-radius: 3px 3px 5px 5px; background: var(--osd); box-shadow: 0 0 2px rgb(0 0 0 / 0.8); }
+  .tick:hover span { color: var(--sel); }
+
+  [data-info="clean"] :is(.side-left, .subject, .reads, .meter, .grid-lines, .shots) { visibility: hidden; }
+  [data-info="clean"] .side-right .key:not([data-info-btn]) { visibility: hidden; }
+
+  /* ---- Desktop / landscape: Canon's bottom row, everything in one line ---- */
   @media (min-width: 900px) {
-    .top { padding: 18px 26px 0; }
-    .subject { padding: 0 26px 22px 5%; }
-    .bottom { grid-template-columns: auto 1fr auto; align-items: center; gap: 28px; padding: 8px 26px 12px; }
-    .reads { grid-template-columns: repeat(3, auto); }
-    .read { padding: 2px 16px; }
-    .read:first-child { padding-left: 0; }
-    .meter { justify-self: center; }
-    .keys .key { flex: none; }
-    .pitch { font-size: clamp(48px, 4.6vw, 76px); }
+    .hud { padding: 16px 22px 12px; column-gap: 24px; }
+    .top { padding: 0 0 0 4px; }
+    .rec { font-size: clamp(40px, 6svh, 60px); }
+    .rec-dot { width: 18px; height: 18px; }
+    .shots { font-size: clamp(28px, 4.4svh, 44px); }
+    .top-mid { position: absolute; left: 50%; translate: -50% 0; top: 16px; min-height: 44px; }
+    .clock { font-size: clamp(32px, 4.8svh, 48px); }
+    .chip { font-size: 15px; }
+    .side-right .key { font-size: 19px; min-height: 48px; }
+    .subject { padding: 0 0 12px 11%; }
+    .pitch { font-size: clamp(48px, 5.4vw, 88px); }
+    .bottom { display: flex; justify-content: center; align-items: flex-end; gap: 28px; }
+    .reads { display: contents; }
+    .read { flex-direction: row; align-items: center; gap: 8px; }
+    .read:nth-child(3) { order: 3; }
+    .meter { order: 2; }
+    .read b { font-size: clamp(32px, 4.8svh, 48px); }
+    .box { font-size: 11px; }
+    .tick { width: 48px; height: 56px; font-size: 24px; }
+    .tick + .tick::before { font-size: 24px; left: -7px; top: 6px; }
+    .tick span { height: 28px; line-height: 28px; }
+    .tick i { width: 6px; height: 14px; }
+    .tick[aria-current] span::after { width: 11px; height: 20px; top: 5px; }
+    .now { font-size: 17px; }
   }
   @media (max-height: 480px) and (orientation: landscape) {
-    .bottom { grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding-top: 4px; padding-bottom: max(6px, env(safe-area-inset-bottom)); }
-    .reads { grid-template-columns: repeat(3, auto); }
-    .read b { font-size: 24px; }
-    .read small { font-size: 15px; }
+    .top-mid { position: static; translate: none; }
+    .bottom { grid-template-columns: auto 1fr auto; align-items: end; }
+    .reads { display: contents; }
+    .read { flex-direction: row; align-items: center; }
+    .read:nth-child(1) { display: none; }
+    .read:nth-child(2) { grid-row: 1; grid-column: 1; }
+    .read:nth-child(3) { grid-row: 1; grid-column: 3; }
+    .meter { grid-row: 1; grid-column: 2; }
     .now { display: none; }
-    .keys .key { flex: none; padding: 0 10px; }
-    .pitch { font-size: clamp(24px, 7.5svh, 48px); }
-    .mark, .roles, .af { display: none; }
+    .pitch { font-size: clamp(30px, 9svh, 52px); }
+    .mark, .side-left, .af { display: none; }
+    .side-right { grid-auto-flow: column; align-content: start; }
   }
   @media (max-height: 700px) and (max-width: 899px) {
-    .subject { gap: 6px; padding-bottom: 10px; }
-    .pitch { font-size: clamp(26px, 8vw, 40px); }
-    .mark { font-size: 20px; }
-    .af { display: none; }
+    .pitch { font-size: clamp(32px, 9.5vw, 42px); }
+    .mark { font-size: 17px; }
+    .side-left, .af { display: none; }
+    .side-right { gap: 6px; }
+  }
+  @media (max-width: 380px) {
+    .read b { font-size: 24px; }
+    .box { font-size: 9px; }
+    .rec { font-size: 28px; }
+    .top-left { gap: 8px; }
   }
 
   /* ---- Panels ---- */
   .panel {
-    position: absolute; inset: 0; z-index: 5; display: grid; grid-template-rows: auto 1fr auto; gap: 10px;
+    position: absolute; inset: 0; z-index: 5; display: grid; grid-template-rows: 1fr auto; gap: 10px;
     padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-    background: var(--lcd);
+    background: var(--lcd); text-shadow: none;
   }
-  .panel[hidden] { display: none; }
-  .pfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .panel[hidden], .menu-list[hidden], .sub[hidden] { display: none; }
+  .pfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
-  /* Menu: colored tabs across the top, rows with an amber select bar, help box at the bottom. */
-  .tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
-  .tab { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 2px solid var(--tc); font-size: 22px; background: var(--lcd); }
-  .tab i { width: 10px; height: 10px; background: var(--tc); box-shadow: 0 0 0 1px var(--outline); }
-  .tab[aria-selected="true"] { background: var(--tc); color: var(--outline); text-shadow: none; }
-  .tab[aria-selected="true"] i { background: var(--outline); }
-  .tabpanel { min-height: 0; overflow: auto; display: grid; align-content: start; gap: 10px; max-width: 46rem; width: 100%; }
+  /* Menu: category tabs, numbered pages, rows with a gold cursor */
+  .panel-menu { padding-inline: max(12px, calc((100vw - 760px) / 2)); }
+  .menu-list { min-height: 0; display: grid; grid-template-rows: auto 1fr; align-content: start; }
+  .tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+  .tab { min-height: 44px; background: var(--lcd-2); color: var(--tc); font-size: 19px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+  .tab[aria-selected="true"] { background: var(--tc); color: var(--lcd); }
+  .tabpanel { display: grid; grid-template-rows: auto 1fr; align-content: start; min-height: 0; }
   .tabpanel[hidden] { display: none; }
-  .rows { display: grid; }
-  .rows li { border-bottom: 1px solid var(--line); }
-  .row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 10px; font-size: 24px; text-align: left; }
-  a.row:hover, button.row:hover, a.row:focus-visible, button.row:focus-visible { background: var(--sel); color: var(--outline); text-shadow: none; outline: 0; }
-  .val { display: inline-flex; align-items: center; gap: 8px; color: var(--osd-dim); text-align: right; }
-  .row:hover .val, .row:focus-visible .val { color: var(--outline); }
-  .val-red { color: var(--tally); }
-  .val-lower { text-transform: none; }
-  .help { padding: 8px 10px; border: 1px solid var(--line); background: var(--lcd); font-size: 21px; line-height: 1.15; text-transform: none; }
-  .help-long { display: grid; gap: 8px; }
-  .chip { width: 18px; height: 18px; border: 1px solid var(--osd); }
-  .specs { display: grid; gap: 10px; padding: 6px 10px 10px; }
-  .s-display { font-size: 44px; color: var(--tally); }
-  .s-body { font-size: 22px; text-transform: none; }
-  .specs-btns { display: flex; flex-wrap: wrap; gap: 12px; padding: 6px 0; }
+  .pagebar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 3px 4px; background: var(--lcd-2); border-top: 2px solid var(--lcd); }
+  .pnums { display: flex; gap: 2px; }
+  .pnum { min-width: 44px; min-height: 34px; font-size: 18px; font-weight: 600; color: var(--osd); }
+  .pnum[aria-current] { background: var(--osd); color: var(--lcd); border-radius: 2px; }
+  .pcode { font-size: 15px; font-weight: 600; letter-spacing: 0.04em; }
+  .rows { display: grid; align-content: start; }
+  .rows[hidden] { display: none; }
+  .rows li { border-bottom: 1px solid var(--rule); }
+  .row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; padding: 0 12px; font-size: 22px; text-align: left; border: 2px solid transparent; }
+  .row-empty { min-height: 49px; }
+  .val { display: inline-flex; align-items: center; gap: 8px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  a.row:focus, button.row:focus { border-color: var(--sel); outline: 0; }
+  @media (hover: hover) { a.row:hover, button.row:hover { border-color: var(--sel); } .rows:has(.row:hover) .row:focus:not(:hover) { border-color: transparent; } }
+  .val-cur { color: var(--cur); }
+  .swatch { width: 18px; height: 18px; border: 1px solid var(--osd-dim); }
 
-  /* Playback: the file fills the LCD, info printed over it like the camera does. */
-  .panel-play { grid-template-rows: 1fr auto; background: var(--outline); }
+  /* SET OK sub-screens: title bar, body, SET OK bottom right */
+  .sub { min-height: 0; display: grid; grid-template-rows: auto 1fr; }
+  .sub-title { padding: 8px 12px 10px; border-bottom: 1px solid var(--osd-dim); font-size: 24px; font-weight: 600; }
+  .sub-body { min-height: 0; overflow: auto; display: grid; align-content: start; gap: 12px; padding: 14px 12px; }
+  .sub-text p, .sub-line { font-size: 20px; line-height: 1.3; }
+  .sub-roles { font-size: 18px; font-weight: 700; color: var(--cur); text-transform: uppercase; letter-spacing: 0.03em; }
+  .rows-options { border-top: 1px solid var(--rule); margin: 0 -12px; }
+  .specs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .s-pitch { font-size: 56px; }
+
+  /* Playback: the file fills the screen, info printed over it like the camera does */
   .single, .index { position: relative; min-height: 0; display: grid; }
   .single[hidden], .index[hidden] { display: none; }
-  .viewer { min-height: 0; display: grid; place-items: center; padding: 44px 0 82px; touch-action: pan-y; }
+  .viewer { min-height: 0; display: grid; place-items: center; padding: 44px 0 78px; touch-action: pan-y; }
   .viewer.cut { animation: cut 0.12s steps(1); }
-  .v-img { max-width: 100%; max-height: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-  .v-tile { max-width: 14ch; font-size: clamp(26px, 7vw, 64px); text-align: center; }
+  .v-img { max-width: 100%; max-height: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+  .v-tile { max-width: 16ch; font-size: clamp(30px, 7vw, 64px); font-weight: 700; line-height: 1; text-align: center; }
   .osd { position: absolute; left: 0; right: 0; }
-  .osd-top, .idx-top { top: 0; display: flex; justify-content: space-between; align-items: center; min-height: 36px; font-size: 24px; font-variant-numeric: tabular-nums; }
+  .osd-top, .idx-top { top: 0; display: flex; justify-content: space-between; align-items: center; min-height: 36px; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
   .osd-bottom { bottom: 0; display: grid; gap: 2px; }
-  .v-file { font-size: 22px; }
-  .v-title { font-size: clamp(24px, 6vw, 34px); font-weight: 400; line-height: 1; text-transform: none; }
-  .index { padding-top: 40px; }
-  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: center; gap: 6px; min-height: 0; }
-  .grid :global(li) { display: grid; }
-  .grid :global(.cell) { aspect-ratio: 1; position: relative; overflow: hidden; display: grid; place-items: center; min-height: 0; border: 2px solid var(--line); background: var(--lcd-2); }
-  .grid :global(.cell[aria-current]) { border: 4px solid var(--sel); }
-  .grid :global(.cell img) { width: 100%; height: 100%; object-fit: cover; }
-  .grid :global(.cell-tile) { padding: 4px; font: 400 18px/1 var(--f-ui); text-align: center; }
-  .grid :global(.cell-no) { position: absolute; left: 4px; bottom: 2px; font-size: 16px; }
-  .pfoot-play .key { flex: 1; padding: 0 8px; }
-  @media (hover: none), (max-width: 899px) { .hint { display: none; } }
-  @media (max-width: 400px) {
-    .read { padding: 2px 6px; }
-    .read small { font-size: 15px; }
-    .read b { font-size: 26px; }
-    .rec { font-size: 22px; padding: 0 10px; }
-  }
-  .key-sq { flex: none !important; width: 48px; }
-  .key-set { flex: 2 !important; }
+  .v-file { font-size: 18px; font-weight: 600; }
+  .v-title { font-size: clamp(24px, 6vw, 34px); font-weight: 700; line-height: 1.05; }
+  .index { grid-template-rows: auto 1fr; }
+  .idx-top { position: static; }
+  .thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: center; gap: 6px; min-height: 0; }
+  .thumbs :global(li) { display: grid; }
+  .thumbs :global(.cell) { position: relative; overflow: hidden; display: grid; place-items: center; aspect-ratio: 1; border: 3px solid transparent; outline: 1px solid var(--rule); outline-offset: -1px; background: var(--lcd-2); }
+  .thumbs :global(.cell[aria-current]) { border-color: var(--sel); }
+  .thumbs :global(.cell img) { width: 100%; height: 100%; object-fit: cover; }
+  .thumbs :global(.cell-tile) { padding: 4px; font-size: 15px; font-weight: 600; line-height: 1.1; text-align: center; }
+  .pfoot-play .key { flex: 1; }
+  .pfoot-play .key-sq { flex: none; width: 48px; }
+  .pfoot-play .setok { flex: 2; justify-content: center; font-size: 20px; min-height: 44px; }
   @media (min-width: 900px) {
-    .panel { padding: 18px 26px; }
-    .panel-menu { grid-template-columns: 220px 1fr; grid-template-rows: 1fr auto; column-gap: 36px; }
-    .tabs { grid-template-columns: 1fr; align-content: start; }
-    .tab { justify-content: flex-start; padding: 0 14px; }
-    .pfoot { grid-column: 1 / -1; }
+    .panel { padding: 22px 28px; }
+    .panel-menu { padding-top: 6vh; padding-bottom: 6vh; padding-inline: max(28px, calc((100vw - 760px) / 2)); }
     .pfoot-play { justify-content: center; }
-    .pfoot-play .key { flex: none; padding: 0 18px; }
-    .key-set { flex: none !important; }
-    .grid { max-width: calc((100svh - 190px) * 16 / 9); width: 100%; justify-self: center; }
-    .grid :global(.cell) { aspect-ratio: 16 / 9; }
+    .pfoot-play .key { flex: none; }
+    .pfoot-play .setok { flex: none; min-width: 200px; }
+    .thumbs { max-width: calc((100svh - 190px) * 3 / 2); width: 100%; justify-self: center; }
+    .thumbs :global(.cell) { aspect-ratio: 3 / 2; }
+  }
+  @media (max-height: 480px) and (orientation: landscape) {
+    .menu-list, .sub { overflow: auto; }
+    .row { min-height: 44px; }
   }
 
-  /* ---- Motion: REC blinks, AF hunts, files hard-cut. Everything else just snaps. ---- */
-  @keyframes blink { 50% { opacity: 0.1; } }
-  @keyframes hunt { 0%, 100% { scale: 1; } 25% { scale: 1.18; opacity: 0.4; } 50% { scale: 0.9; } 75% { scale: 1.06; opacity: 0.7; } }
-  @keyframes grain { 0% { translate: 0 0; } 25% { translate: -17px 9px; } 50% { translate: 11px -21px; } 75% { translate: -7px 15px; } }
+  /* ---- Motion: REC blinks, files hard-cut. Everything else just snaps, like the camera. ---- */
+  @keyframes blink { 50% { opacity: 0; } }
   @keyframes cut { 0% { opacity: 0; } }
   @media (prefers-reduced-motion: no-preference) {
     .rec-dot { animation: blink 1s steps(1) infinite; }
-    .af.hunting { animation: hunt 0.6s steps(4) infinite; }
-    .lcd::after { animation: grain 0.4s steps(1) infinite; }
   }
 </style>
