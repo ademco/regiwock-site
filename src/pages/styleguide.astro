@@ -3,15 +3,21 @@
 // readouts, rule-of-thirds + diagonal grid, orange dial marks, boxed RAW/AWB/ISO labels,
 // the -3..0..+3 scale) and Canon's menu (colored tabs, numbered pages, gold cursor,
 // SET OK screens). The whole window is that camera screen; every readout means something real.
+// Round 3: lightweight plain white text (no bold/boxed "enhanced" text), thirds grid only,
+// a round mic-mute button for sound, and followers = the real total pulled from his platforms.
 // Hidden page: not linked anywhere, noindex.
+import '@fontsource/barlow-semi-condensed/latin-400.css';
 import '@fontsource/barlow-semi-condensed/latin-500.css';
-import '@fontsource/barlow-semi-condensed/latin-600.css';
-import '@fontsource/barlow-semi-condensed/latin-700.css';
 import Base from '../layouts/Base.astro';
 import { PROFILE, ABOUT, COLLABS, SOCIALS, EMAIL, STATS } from '../config';
 import { getWork } from '../lib/work';
+import { getFollowers, formatCount } from '../lib/followers';
 
 const work = await getWork();
+// Real numbers, pulled at build time. Followers = the sum of every platform that answered ("--" if none did).
+const { counts, total, listeners } = await getFollowers();
+const followers = total === null ? '--' : formatCount(total);
+const counted = Object.values(counts).filter((n) => n !== null).length;
 const ytId = (m: { platform: string; embed: string }) =>
   m.platform === 'youtube' ? (m.embed.match(/embed\/([\w-]{11})/)?.[1] ?? '') : '';
 // Camera file names: videos are MVI_####.MOV, audio SND_####.WAV, stills IMG_####.JPG.
@@ -61,8 +67,8 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
     rows: [
       { label: 'About Regi', value: 'Read', sub: 'about' },
       { label: 'Creating since', value: STATS.creatingSince },
-      { label: 'Monthly listeners', value: `${STATS.monthlyListeners} ↗`, href: spotify },
-      { label: 'Followers', value: STATS.followers, tab: 'socials' },
+      { label: 'Monthly listeners', value: `${listeners} ↗`, href: spotify },
+      { label: 'Followers', value: followers, tab: 'socials' },
       { label: 'Bookings', value: 'Open', href: '#book' },
       { label: 'Date/Time', datetime: true },
     ],
@@ -77,7 +83,8 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
   {
     id: 'socials', name: 'Socials', code: 'SOCIAL', color: '--tab-yellow',
     rows: [
-      ...SOCIALS.map((s) => ({ label: s.name, value: `${handle(s.url)} ↗`, href: s.url })),
+      { label: 'Followers, all platforms', value: counted ? `${followers} · ${counted} counted` : '--' },
+      ...SOCIALS.map((s) => ({ label: s.name, value: `${typeof counts[s.name] === 'number' ? formatCount(counts[s.name]!) : handle(s.url)} ↗`, href: s.url })),
       { label: 'Email', value: EMAIL, href: `mailto:${EMAIL}` },
     ],
   },
@@ -105,7 +112,7 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
       {first?.thumb && <img class="still" src={first.thumb} alt="" data-still onerror="this.hidden=true" />}
       <div class="yt" data-yt></div>
       <svg class="grid-lines" viewBox="0 0 300 200" preserveAspectRatio="none">
-        <path d="M100 0V200M200 0V200M0 66.667H300M0 133.333H300M0 0L300 200M300 0L0 200" vector-effect="non-scaling-stroke" />
+        <path d="M100 0V200M200 0V200M0 66.667H300M0 133.333H300" vector-effect="non-scaling-stroke" />
       </svg>
       <div class="af" data-af></div>
     </div>
@@ -114,17 +121,13 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
       <header class="top">
         <div class="top-left">
           <a href="#book" class="rec" aria-label="Book me">
-            <span class="rec-dot" aria-hidden="true"></span>REC<span class="chip chip-red">Book me</span>
+            <span class="rec-dot" aria-hidden="true"></span>REC <span class="rec-book">Book me</span>
           </a>
           <button type="button" class="shots" data-open="play" aria-label={`SD card: ${items.length} files`}>[{pad2(items.length)}]</button>
         </div>
         <div class="top-mid">
           <b class="clock" data-time>--:--</b>
           <span class="batt" data-batt hidden><i></i><i></i><i></i></span>
-          <button type="button" class="mic" data-sound aria-pressed="false" hidden>
-            <svg viewBox="0 0 16 22" aria-hidden="true"><rect x="4.5" y="1" width="7" height="12" rx="3.5" /><path d="M1.5 9.5a6.5 6.5 0 0 0 13 0M8 16v4.5M4.5 20.5h7" /></svg>
-            <sub data-sound-label>OFF</sub><span class="sr-only">Sound</span>
-          </button>
         </div>
       </header>
 
@@ -136,6 +139,14 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
         <button type="button" class="key" data-open="menu">Menu</button>
         <button type="button" class="key" data-open="play" aria-label="Play: past streams and work">▶</button>
         <button type="button" class="key key-disp" data-info-btn aria-pressed="false"><span class="cam-ico" aria-hidden="true"></span>Disp</button>
+        <!-- Mic mute = the stream's sound. Starts muted (slashed); tap to hear it. -->
+        <button type="button" class="mic" data-sound aria-pressed="false" aria-label="Sound off. Tap to unmute">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path class="mic-body" d="M12 2.5a3.5 3.5 0 0 0-3.5 3.5v6a3.5 3.5 0 0 0 7 0V6A3.5 3.5 0 0 0 12 2.5Z" />
+            <path class="mic-stand" d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4M8.5 21.5h7" />
+            <path class="mic-slash" d="M4 3.5l16 17" />
+          </svg>
+        </button>
       </nav>
 
       <div class="subject">
@@ -150,10 +161,10 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
             <span class="box">Creating<br />since</span><b>{STATS.creatingSince}</b>
           </button>
           <a class="read" href={spotify} target="_blank" rel="noopener">
-            <span class="box">Monthly<br />listeners</span><b>{STATS.monthlyListeners}</b>
+            <span class="box">Monthly<br />listeners</span><b>{listeners}</b>
           </a>
           <button type="button" class="read" data-open="menu" data-tab="socials">
-            <span class="box">Followers</span><b>{STATS.followers}</b>
+            <span class="box">Followers</span><b>{followers}</b>
           </button>
         </div>
 
@@ -253,11 +264,11 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
             <span class="key key-disp"><span class="cam-ico" aria-hidden="true"></span>Disp</span>
           </div>
           <div class="specs-row">
-            <span class="chip">Artist</span><span class="chip chip-red">Book me</span>
-            <span class="read"><span class="box">Monthly<br />listeners</span><b>{STATS.monthlyListeners}</b></span>
+            <span class="chip">Artist</span>
+            <span class="read"><span class="box">Monthly<br />listeners</span><b>{listeners}</b></span>
             <i class="dial"></i><i class="dial dial-down"></i>
           </div>
-          <p class="sub-line">Readouts and labels float on the footage in white with a soft shadow. Gold outline = where the cursor is. Blue = the value that's set.</p>
+          <p class="sub-line">Plain white text on the footage; anything you can tap turns gold. Gold outline = where the menu cursor is. Blue = the value that's set.</p>
         </div>
       </div>
 
@@ -383,7 +394,7 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
     if (data.event === 'infoDelivery' && typeof data.info === 'object' && data.info?.playerState === 1) {
       ytBox.classList.add('on'); // Show the video only once frames are actually playing.
       af.classList.add('locked');
-      soundBtn.hidden = false;
+      if (soundOn) command('unMute');
     }
     if (data.event === 'onError') ytBox.replaceChildren(); // Not embeddable: the still stays.
   });
@@ -391,13 +402,14 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
   soundBtn.addEventListener('click', () => {
     soundOn = !soundOn;
     soundBtn.setAttribute('aria-pressed', String(soundOn));
-    $('[data-sound-label]').textContent = soundOn ? 'ON' : 'OFF';
+    soundBtn.setAttribute('aria-label', soundOn ? 'Sound on. Tap to mute' : 'Sound off. Tap to unmute');
     command(soundOn ? 'unMute' : 'mute');
     if (soundOn) command('setVolume', [70]);
   });
   $$('[data-step]').forEach((b) => b.addEventListener('click', () => show(current + Number(b.dataset.step))));
   $$('[data-clip]').forEach((b) => b.addEventListener('click', () => show(Number(b.dataset.clip))));
   if (clips.length) show(0);
+  if (reduce) soundBtn.hidden = true; // No live stream under reduced motion, so nothing to unmute.
 
   // ---- DISP: like the camera button, flips between the full display and a clean view ----
   const infoBtn = $('[data-info-btn]');
@@ -660,22 +672,22 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
     --bg: var(--lcd); --bg-2: var(--lcd-2); --panel: var(--lcd-2); --ink: var(--osd); --muted: var(--osd-dim);
     --line: var(--rule); --accent: var(--tally); --accent-ink: var(--osd); --accent-fill: var(--tally); --ok: var(--af);
     --f-display: var(--f-ui); --f-body: var(--f-ui); --f-mono: var(--f-ui); --f-hand: var(--f-ui);
-    /* Camera readouts: white with a soft dark edge so they read over any footage. */
-    --osd-shadow: 0 0 2px rgb(0 0 0 / 0.9), 0 1px 3px rgb(0 0 0 / 0.7);
+    /* Camera readouts: plain white, just enough edge to read over bright footage. */
+    --osd-shadow: 0 0 2px rgb(0 0 0 / 0.55);
   }
   :global(html), :global(body) { height: 100%; overflow: hidden; overscroll-behavior: none; background: var(--lcd); }
   :global(body::after) { display: none; }
   :global(dialog.sheet::backdrop) { background: rgb(0 0 0 / 0.7); }
   :global(dialog.sheet .sheet-page) { border: 1px solid var(--rule); box-shadow: none; outline: 0; border-radius: 0; }
   :global(:root dialog.sheet[open] .sheet-page) { animation: none; }
-  :global(dialog.sheet .display) { font-weight: 700; letter-spacing: 0; }
+  :global(dialog.sheet .display) { font-weight: 500; letter-spacing: 0; text-transform: none; }
   :global(dialog.sheet .label) { font-size: 15px; letter-spacing: 0.04em; }
   :global(dialog.sheet .hand) { font-size: 20px; }
   :global(:focus-visible) { outline: 2px solid var(--sel); outline-offset: 2px; }
 
   .cam {
     position: fixed; inset: 0; overflow: hidden; background: var(--lcd); color: var(--osd);
-    font: 500 18px/1.15 var(--f-ui); text-shadow: var(--osd-shadow);
+    font: 400 18px/1.15 var(--f-ui); text-shadow: var(--osd-shadow);
   }
   .cam :is(button, a) { letter-spacing: inherit; }
   .dim { color: var(--osd-dim); }
@@ -710,14 +722,14 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
   }
   .top { grid-area: top; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   .top-left { display: flex; align-items: center; gap: 12px; }
-  .rec { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; font-size: 32px; font-weight: 700; line-height: 1; white-space: nowrap; }
-  .rec-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--tally); }
-  .rec .chip { margin-left: 4px; }
-  .rec:hover .chip, .rec:focus-visible .chip { background: var(--osd); color: var(--lcd); }
-  .shots { min-height: 44px; font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .rec { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; font-size: 22px; font-weight: 500; line-height: 1; white-space: nowrap; }
+  .rec-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--tally); }
+  .rec-book { margin-left: 4px; }
+  .rec:hover, .rec:focus-visible { color: var(--sel); outline: 0; }
+  .shots { min-height: 44px; font-size: 20px; font-variant-numeric: tabular-nums; }
   .shots:hover { color: var(--sel); }
   .top-mid { display: flex; align-items: center; gap: 10px; }
-  .clock { font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .clock { font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
 
   /* Battery like the camera's: outline, nub, up to 3 bars. */
   .batt { position: relative; display: inline-flex; gap: 2px; width: 30px; height: 14px; padding: 2px; border: 1.5px solid var(--osd); border-radius: 2px; filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8)); }
@@ -726,53 +738,49 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
   .batt[data-bars="1"] i:nth-child(n + 2), .batt[data-bars="2"] i:nth-child(3) { visibility: hidden; }
   .batt[data-low] { border-color: var(--tally); }
   .batt[data-low] i { background: var(--tally); }
-  /* Mic with OFF/ON underneath = the sound toggle, like the camera's recording-level icon. */
-  .mic { display: inline-flex; align-items: flex-end; min-width: 44px; min-height: 44px; justify-content: center; }
-  .mic svg { width: 14px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8)); }
-  .mic svg rect { fill: currentColor; stroke: none; }
-  .mic sub { font-size: 12px; font-weight: 700; line-height: 1; margin-bottom: 11px; }
-  .mic[aria-pressed="true"] { color: var(--cur); }
+  /* Mic mute: round button, mic silhouette, slashed while the stream is muted. */
+  .mic { display: grid; place-items: center; width: 56px; height: 56px; margin-top: 6px; border: 1.5px solid currentColor; border-radius: 50%; background: rgb(0 0 0 / 0.3); }
+  .mic svg { width: 26px; height: 26px; overflow: visible; }
+  .mic-body { fill: currentColor; }
+  .mic-stand { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+  .mic-slash { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+  .mic[aria-pressed="true"] .mic-slash { display: none; }
+  .mic:hover, .mic:focus-visible { color: var(--sel); outline: 0; }
 
   /* Boxed labels: filled like RAW (chip), outlined like ISO (box) */
-  .chip { display: inline-block; padding: 1px 5px; border-radius: 3px; background: var(--osd); color: var(--lcd); font-size: 13px; font-weight: 700; line-height: 1.2; text-transform: uppercase; text-shadow: none; white-space: nowrap; box-shadow: 0 0 2px rgb(0 0 0 / 0.6); }
-  .chip-red { background: var(--tally); color: var(--osd); }
-  .box { display: inline-block; padding: 1px 3px; border: 1.5px solid currentColor; border-radius: 2px; font-size: 10px; font-weight: 700; line-height: 1.05; text-transform: uppercase; text-align: center; }
+  .chip { display: inline-block; font-size: 14px; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+  .box { display: inline-block; padding: 1px 3px; border: 1px solid currentColor; border-radius: 2px; font-size: 10px; font-weight: 500; line-height: 1.05; text-transform: uppercase; text-align: center; }
 
   .side { display: grid; gap: 14px; align-content: center; justify-items: start; }
   .side-left { grid-area: left; }
   .side-right { grid-area: right; justify-items: end; gap: 8px; }
   .key {
     display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 44px; min-height: 44px; padding: 0 10px;
-    border: 1.5px solid var(--osd); border-radius: 4px; background: rgb(0 0 0 / 0.35);
-    font-size: 17px; font-weight: 700; line-height: 1; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 2px rgb(0 0 0 / 0.6);
+    font-size: 18px; font-weight: 500; line-height: 1; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
   }
-  .key:hover, .key:focus-visible { border-color: var(--sel); color: var(--sel); outline: 0; }
-  .key:active { background: var(--sel); color: var(--lcd); text-shadow: none; }
-  .key[aria-pressed="true"] { color: var(--cur); border-color: var(--cur); }
+  .key:hover, .key:focus-visible { color: var(--sel); outline: 0; }
+  .key[aria-pressed="true"] { color: var(--cur); }
   .cam-ico { position: relative; width: 14px; height: 10px; border-radius: 2px; background: currentColor; }
   .cam-ico::before { content: ""; position: absolute; left: 3px; top: -3px; width: 5px; height: 3px; background: currentColor; }
   .cam-ico::after { content: ""; position: absolute; left: 4px; top: 2px; width: 6px; height: 6px; border-radius: 50%; background: var(--lcd); }
 
   .subject { grid-area: subject; display: grid; justify-items: start; gap: 6px; padding-bottom: 10px; max-width: 60rem; }
-  .mark { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-  .pitch { font-size: clamp(38px, 11vw, 96px); font-weight: 700; line-height: 0.95; letter-spacing: -0.01em; }
+  .mark { font-size: 16px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--osd-dim); }
+  .pitch { font-size: clamp(28px, 8vw, 40px); font-weight: 500; line-height: 1; }
   /* SET + label, with the gold cursor around it: the camera's "this is selected, press SET". */
-  .setbtn, .setok {
-    display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 16px 0 10px;
-    border: 2px solid var(--sel); background: rgb(0 0 0 / 0.55); font-size: 24px; font-weight: 600; line-height: 1; white-space: nowrap;
-  }
-  .setbtn:hover, .setbtn:focus-visible, .setok:hover, .setok:focus-visible { background: var(--sel); color: var(--lcd); text-shadow: none; outline: 0; }
-  .set { padding: 2px 5px; border-radius: 3px; background: var(--osd); color: var(--lcd); font-size: 14px; font-weight: 700; text-shadow: none; }
-  .setbtn:hover .set, .setbtn:focus-visible .set, .setok:hover .set, .setok:focus-visible .set { background: var(--lcd); color: var(--osd); }
+  /* SET + label, like the camera's "SET OK": plain text, gold when you can press it. */
+  .setbtn, .setok { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 22px; font-weight: 500; line-height: 1; white-space: nowrap; }
+  .setbtn:hover, .setbtn:focus-visible, .setok:hover, .setok:focus-visible { color: var(--sel); outline: 0; }
+  .set { padding: 1px 4px; border: 1px solid currentColor; border-radius: 3px; font-size: 13px; letter-spacing: 0.04em; }
 
   .bottom { grid-area: bottom; display: grid; gap: 4px; }
   .reads { display: flex; justify-content: space-between; gap: 6px; }
   .read { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 44px; }
-  .read b { font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .read b { font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .read:hover, .read:focus-visible { color: var(--sel); outline: 0; }
   .meter { display: grid; justify-items: center; min-width: 0; }
   .meter-row { display: flex; align-items: center; }
-  .now { max-width: 100%; font-size: 16px; font-weight: 600; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .now { max-width: 100%; font-size: 15px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* Orange dial marks: turn this to change the stream. */
   .nudge { display: grid; place-items: center; width: 44px; height: 44px; }
   .dial {
@@ -784,9 +792,9 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
   .nudge:hover .dial { border-color: var(--sel); }
   /* The exposure scale, one mark per stream: numbers with dots between, ticks under, the marker on the live one. */
   .scale { display: flex; }
-  .tick { position: relative; display: grid; justify-items: center; align-content: center; gap: 3px; width: 40px; height: 44px; font-size: 18px; font-weight: 600; }
+  .tick { position: relative; display: grid; justify-items: center; align-content: center; gap: 3px; width: 40px; height: 44px; font-size: 18px; }
   .tick + .tick::before { content: ".."; position: absolute; left: -5px; top: 7px; font-size: 18px; }
-  .tick i { width: 5px; height: 10px; background: var(--osd); box-shadow: 0 0 2px rgb(0 0 0 / 0.8); }
+  .tick i { width: 3px; height: 9px; background: var(--osd); box-shadow: 0 0 2px rgb(0 0 0 / 0.8); }
   .tick span { height: 20px; line-height: 20px; }
   .tick[aria-current] span { color: transparent; text-shadow: none; position: relative; }
   .tick[aria-current] span::after { content: ""; position: absolute; left: 50%; top: 3px; width: 9px; height: 15px; translate: -50% 0; border-radius: 3px 3px 5px 5px; background: var(--osd); box-shadow: 0 0 2px rgb(0 0 0 / 0.8); }
@@ -794,32 +802,33 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
 
   [data-info="clean"] :is(.side-left, .subject, .reads, .meter, .grid-lines, .shots) { visibility: hidden; }
   [data-info="clean"] .side-right .key:not([data-info-btn]) { visibility: hidden; }
+  .af { border-width: 1.5px; }
 
   /* ---- Desktop / landscape: Canon's bottom row, everything in one line ---- */
   @media (min-width: 900px) {
     .hud { padding: 16px 22px 12px; column-gap: 24px; }
     .top { padding: 0 0 0 4px; }
-    .rec { font-size: clamp(40px, 6svh, 60px); }
-    .rec-dot { width: 18px; height: 18px; }
-    .shots { font-size: clamp(28px, 4.4svh, 44px); }
+    .rec { font-size: clamp(22px, 3.2svh, 30px); }
+    .rec-dot { width: 13px; height: 13px; }
+    .shots { font-size: clamp(22px, 3.2svh, 30px); }
     .top-mid { position: absolute; left: 50%; translate: -50% 0; top: 16px; min-height: 44px; }
-    .clock { font-size: clamp(32px, 4.8svh, 48px); }
+    .clock { font-size: clamp(22px, 3.2svh, 30px); }
     .chip { font-size: 15px; }
-    .side-right .key { font-size: 19px; min-height: 48px; }
+    .side-right .key { font-size: 19px; }
     .subject { padding: 0 0 12px 11%; }
-    .pitch { font-size: clamp(48px, 5.4vw, 88px); }
+    .pitch { font-size: clamp(32px, 3vw, 48px); }
     .bottom { display: flex; justify-content: center; align-items: flex-end; gap: 28px; }
     .reads { display: contents; }
     .read { flex-direction: row; align-items: center; gap: 8px; }
     .read:nth-child(3) { order: 3; }
     .meter { order: 2; }
-    .read b { font-size: clamp(32px, 4.8svh, 48px); }
+    .read b { font-size: clamp(24px, 3.6svh, 34px); }
     .box { font-size: 11px; }
-    .tick { width: 48px; height: 56px; font-size: 24px; }
-    .tick + .tick::before { font-size: 24px; left: -7px; top: 6px; }
-    .tick span { height: 28px; line-height: 28px; }
-    .tick i { width: 6px; height: 14px; }
-    .tick[aria-current] span::after { width: 11px; height: 20px; top: 5px; }
+    .tick { width: 44px; height: 50px; font-size: 21px; }
+    .tick + .tick::before { font-size: 21px; left: -6px; top: 6px; }
+    .tick span { height: 24px; line-height: 24px; }
+    .tick i { width: 4px; height: 11px; }
+    .tick[aria-current] span::after { width: 10px; height: 17px; top: 4px; }
     .now { font-size: 17px; }
   }
   @media (max-height: 480px) and (orientation: landscape) {
@@ -832,20 +841,20 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
     .read:nth-child(3) { grid-row: 1; grid-column: 3; }
     .meter { grid-row: 1; grid-column: 2; }
     .now { display: none; }
-    .pitch { font-size: clamp(30px, 9svh, 52px); }
+    .pitch { font-size: clamp(24px, 7svh, 34px); }
     .mark, .side-left, .af { display: none; }
     .side-right { grid-auto-flow: column; align-content: start; }
   }
   @media (max-height: 700px) and (max-width: 899px) {
-    .pitch { font-size: clamp(32px, 9.5vw, 42px); }
+    .pitch { font-size: clamp(26px, 7.5vw, 32px); }
     .mark { font-size: 17px; }
     .side-left, .af { display: none; }
     .side-right { gap: 6px; }
   }
   @media (max-width: 380px) {
-    .read b { font-size: 24px; }
+    .read b { font-size: 21px; }
     .box { font-size: 9px; }
-    .rec { font-size: 28px; }
+    .rec { font-size: 20px; }
     .top-left { gap: 8px; }
   }
 
@@ -862,15 +871,15 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
   .panel-menu { padding-inline: max(12px, calc((100vw - 760px) / 2)); }
   .menu-list { min-height: 0; display: grid; grid-template-rows: auto 1fr; align-content: start; }
   .tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
-  .tab { min-height: 44px; background: var(--lcd-2); color: var(--tc); font-size: 19px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+  .tab { min-height: 44px; background: var(--lcd-2); color: var(--tc); font-size: 19px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
   .tab[aria-selected="true"] { background: var(--tc); color: var(--lcd); }
   .tabpanel { display: grid; grid-template-rows: auto 1fr; align-content: start; min-height: 0; }
   .tabpanel[hidden] { display: none; }
   .pagebar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 3px 4px; background: var(--lcd-2); border-top: 2px solid var(--lcd); }
   .pnums { display: flex; gap: 2px; }
-  .pnum { min-width: 44px; min-height: 34px; font-size: 18px; font-weight: 600; color: var(--osd); }
+  .pnum { min-width: 44px; min-height: 34px; font-size: 18px; font-weight: 500; color: var(--osd); }
   .pnum[aria-current] { background: var(--osd); color: var(--lcd); border-radius: 2px; }
-  .pcode { font-size: 15px; font-weight: 600; letter-spacing: 0.04em; }
+  .pcode { font-size: 15px; font-weight: 500; letter-spacing: 0.04em; }
   .rows { display: grid; align-content: start; }
   .rows[hidden] { display: none; }
   .rows li { border-bottom: 1px solid var(--rule); }
@@ -884,10 +893,10 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
 
   /* SET OK sub-screens: title bar, body, SET OK bottom right */
   .sub { min-height: 0; display: grid; grid-template-rows: auto 1fr; }
-  .sub-title { padding: 8px 12px 10px; border-bottom: 1px solid var(--osd-dim); font-size: 24px; font-weight: 600; }
+  .sub-title { padding: 8px 12px 10px; border-bottom: 1px solid var(--osd-dim); font-size: 24px; font-weight: 500; }
   .sub-body { min-height: 0; overflow: auto; display: grid; align-content: start; gap: 12px; padding: 14px 12px; }
   .sub-text p, .sub-line { font-size: 20px; line-height: 1.3; }
-  .sub-roles { font-size: 18px; font-weight: 700; color: var(--cur); text-transform: uppercase; letter-spacing: 0.03em; }
+  .sub-roles { font-size: 18px; font-weight: 500; color: var(--cur); text-transform: uppercase; letter-spacing: 0.03em; }
   .rows-options { border-top: 1px solid var(--rule); margin: 0 -12px; }
   .specs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
   .s-pitch { font-size: 56px; }
@@ -898,12 +907,12 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
   .viewer { min-height: 0; display: grid; place-items: center; padding: 44px 0 78px; touch-action: pan-y; }
   .viewer.cut { animation: cut 0.12s steps(1); }
   .v-img { max-width: 100%; max-height: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
-  .v-tile { max-width: 16ch; font-size: clamp(30px, 7vw, 64px); font-weight: 700; line-height: 1; text-align: center; }
+  .v-tile { max-width: 16ch; font-size: clamp(30px, 7vw, 64px); font-weight: 500; line-height: 1; text-align: center; }
   .osd { position: absolute; left: 0; right: 0; }
-  .osd-top, .idx-top { top: 0; display: flex; justify-content: space-between; align-items: center; min-height: 36px; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .osd-top, .idx-top { top: 0; display: flex; justify-content: space-between; align-items: center; min-height: 36px; font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .osd-bottom { bottom: 0; display: grid; gap: 2px; }
-  .v-file { font-size: 18px; font-weight: 600; }
-  .v-title { font-size: clamp(24px, 6vw, 34px); font-weight: 700; line-height: 1.05; }
+  .v-file { font-size: 18px; font-weight: 500; }
+  .v-title { font-size: clamp(24px, 6vw, 34px); font-weight: 500; line-height: 1.05; }
   .index { grid-template-rows: auto 1fr; }
   .idx-top { position: static; }
   .thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: center; gap: 6px; min-height: 0; }
@@ -911,10 +920,10 @@ const tabs: { id: string; name: string; code: string; color: string; rows: Row[]
   .thumbs :global(.cell) { position: relative; overflow: hidden; display: grid; place-items: center; aspect-ratio: 1; border: 3px solid transparent; outline: 1px solid var(--rule); outline-offset: -1px; background: var(--lcd-2); }
   .thumbs :global(.cell[aria-current]) { border-color: var(--sel); }
   .thumbs :global(.cell img) { width: 100%; height: 100%; object-fit: cover; }
-  .thumbs :global(.cell-tile) { padding: 4px; font-size: 15px; font-weight: 600; line-height: 1.1; text-align: center; }
+  .thumbs :global(.cell-tile) { padding: 4px; font-size: 15px; font-weight: 500; line-height: 1.1; text-align: center; }
   .pfoot-play .key { flex: 1; }
   .pfoot-play .key-sq { flex: none; width: 48px; }
-  .pfoot-play .setok { flex: 2; justify-content: center; font-size: 20px; min-height: 44px; }
+  .pfoot-play .setok { flex: 2; justify-content: center; font-size: 20px; }
   @media (min-width: 900px) {
     .panel { padding: 22px 28px; }
     .panel-menu { padding-top: 6vh; padding-bottom: 6vh; padding-inline: max(28px, calc((100vw - 760px) / 2)); }

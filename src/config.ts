@@ -30,13 +30,13 @@ export const PROFILE = {
 
 /**
  * Numbers shown as camera readouts on the viewfinder (/styleguide for now).
- * FOLLOWERS is a placeholder until Regi sends real counts (live counts are in ROADMAP IDEAS).
+ * Followers aren't here: src/lib/followers.ts pulls them from each platform at build time and
+ * adds them up. It also reads live monthly listeners from Spotify; this number is the fallback.
  */
 export const STATS = {
   /** Regi started YouTube in April 2009 (born July 1999 — that's the 1999 in the pitch). */
   creatingSince: 'Apr 2009',
   monthlyListeners: '20K',
-  followers: '50K',
 };
 
 /** Shown in the proof bar marquee. */
