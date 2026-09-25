@@ -35,6 +35,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 - **Round 2:** `/styleguide` follows that reference. Canon-style condensed type (Barlow Semi Condensed) in white with a soft shadow, floating straight on the footage (no bars, no pixel effects), thirds + diagonal grid, 3:2 live view pillarboxed on wide screens. Top: ● REC + BOOK ME chip, [09] files on the card (→ playback), the visitor's time, battery, mic OFF/ON = sound. Left column: role chips (like RAW). Right column: MENU, ▶, DISP (clean view). Bottom: readouts with ISO-style boxed labels, the stream picker as Canon's exposure scale with orange dial marks. `SET Book me` with the gold cursor. MENU is Canon's: colored tabs, numbered pages of 6 rows (Socials has 2 pages), gold cursor, About/Collabs/Buttons open SET OK sub-screens, Date/Time is the visitor's. Playback + index kept, restyled.
 - **Round 2 → Regi:** (1) no "enhanced" text: it should feel like a lightweight camera screen with plain, functional white text you can tap; (2) thirds grid only, and sound becomes a larger round **mic mute** button with a mic silhouette; (3) pull the real follower numbers from his platforms and show the total.
 - **Round 3 (last):** all text is light (Barlow Semi Condensed 400/500, no bold, no filled chips, no boxed buttons, softer shadow, smaller headline); taps are plain white text that turns gold. Thirds grid only. Round mic-mute button (slashed = muted) under DISP. Followers readout = the sum of YouTube, Twitch, Kick, TikTok, Instagram, X and SoundCloud, pulled at build time by `src/lib/followers.ts` with no API keys (public pages + free endpoints: decapi.me for Twitch, FxTwitter for X); Socials menu shows each platform's count, and monthly listeners are read live from Spotify too. A platform that doesn't answer is left out of the total; if none answer, the readout shows `--` (never a made-up number). Counts refresh on every deploy.
+- **Fix after lock (Regi asked, 2026-09-25):** Instagram, TikTok and Kick didn't come through on the preview (they block data-center requests). Each now tries several sources in order and falls back to Jina Reader (r.jina.ai, free, no key), which loads the page in a real browser. `/followers.json` shows, per platform, which source answered or why each failed.
 
 ---
 
@@ -75,6 +76,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 - **Status:** in progress
 - **Kickoff → Regi:** doesn't like music mixed in with the videos. Flipping through the card should only be VODs he's linked; music goes under a Music tab in the menu (picked option 1). Tracks redirect to their own site (no player on the site). VODs will mostly be YouTube, since Twitch/Kick VODs expire.
 - **Round 1:** the card = stream items with a YouTube link (all 5 today, including the two Blame Kick streams, which are YouTube uploads), all `MVI_####.MOV` files; [05] on the live view. MENU gets a magenta **Music** tab: tracks first (Feelings Gone → Spotify ↗), then "Listen on" Spotify (with live monthly listeners), SoundCloud and Apple Music. Profile links ("Regiwock on Spotify" etc.) stop counting as work. Playback shows the VOD thumbnail full width. Posts and drops get a home once there are any.
+- **Round 1 → Regi:** no more tracks or VODs to add for now; unsure where posts/drops should go (parked in IDEAS until there are some).
 
 ### 4.5 Collabs
 - **Goal:** show the top 3 collabs and exactly what Regi did on each.
@@ -167,6 +169,7 @@ Status: `todo` · `in progress` · `locked` (approved by Regi; don't touch unles
 
 ## IDEAS (parked, not in scope until promoted to a roadmap item)
 
+- Where posts and clothing drops live on the camera screen once there are some (their own MENU tab, or a second folder on the SD card).
 - Background sound on the home page with one of Regi's own tracks (Feelings Gone), toggle already built.
 - ~~Hand-drawn frames of Regi "falling upward"~~: dropped 2026-09-24 (Regi: "overplayed and too hard"). The drawing code (`Scene.astro`, `sketch.ts`, `npm run frames`) stays until 4.1 replaces the hero.
 - Move regiwock.com from Beacons to Cloudflare (before Feb 2027), then set `DOMAIN_CONNECTED = true`.
